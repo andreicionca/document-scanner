@@ -9,33 +9,35 @@ body {
   background: #1a1a2e;
   color: white;
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 .container {
   max-width: 500px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 500;
-  text-align: center;
 }
 
-/* Camera wrapper */
+/* ========== CAMERA ========== */
 .camera-wrapper {
   position: relative;
   width: 100%;
   aspect-ratio: 3/4;
   background: #000;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
+}
+
+.camera-wrapper.hidden {
+  display: none;
 }
 
 #video {
@@ -44,11 +46,7 @@ h1 {
   object-fit: cover;
 }
 
-#canvas-scan {
-  display: none;
-}
-
-/* Overlay cu ghidaje */
+/* ========== GHIDAJ A4 ========== */
 .guide-overlay {
   position: absolute;
   top: 0;
@@ -61,33 +59,22 @@ h1 {
   pointer-events: none;
 }
 
+/* A4 portrait: 210 x 297 mm = ratio 1:1.414 */
 .guide-frame {
-  width: 70%;
-  height: 90%;
+  width: 65%;
+  aspect-ratio: 1 / 1.414;
+  max-height: 85%;
   position: relative;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  transition:
-    border-color 0.3s,
-    box-shadow 0.3s;
-}
-
-.guide-frame.detected {
-  border-color: #4ade80;
-  box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
 }
 
 /* Colțuri */
 .corner {
   position: absolute;
-  width: 24px;
-  height: 24px;
-  border: 3px solid white;
-  transition: border-color 0.3s;
-}
-
-.guide-frame.detected .corner {
-  border-color: #4ade80;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #fff;
 }
 
 .corner.top-left {
@@ -95,7 +82,7 @@ h1 {
   left: -2px;
   border-right: none;
   border-bottom: none;
-  border-radius: 8px 0 0 0;
+  border-radius: 6px 0 0 0;
 }
 
 .corner.top-right {
@@ -103,7 +90,7 @@ h1 {
   right: -2px;
   border-left: none;
   border-bottom: none;
-  border-radius: 0 8px 0 0;
+  border-radius: 0 6px 0 0;
 }
 
 .corner.bottom-left {
@@ -111,7 +98,7 @@ h1 {
   left: -2px;
   border-right: none;
   border-top: none;
-  border-radius: 0 0 0 8px;
+  border-radius: 0 0 0 6px;
 }
 
 .corner.bottom-right {
@@ -119,28 +106,68 @@ h1 {
   right: -2px;
   border-left: none;
   border-top: none;
-  border-radius: 0 0 8px 0;
+  border-radius: 0 0 6px 0;
+}
+
+/* Label A4 */
+.guide-label {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Mesaj */
 .message {
   position: absolute;
-  bottom: 20px;
+  bottom: 15px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.7);
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   white-space: nowrap;
-  transition: background 0.3s;
 }
 
-.message.success {
-  background: rgba(74, 222, 128, 0.8);
+/* ========== BUTOANE CONTROL ========== */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  width: 100%;
+  padding: 10px 0;
 }
 
-/* Buton captură */
+.controls.hidden {
+  display: none;
+}
+
+.btn-control {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-control.active {
+  background: #fbbf24;
+  border-color: #fbbf24;
+}
+
 .btn-capture {
   width: 70px;
   height: 70px;
@@ -151,17 +178,9 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    opacity 0.3s,
-    transform 0.2s;
 }
 
-.btn-capture:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-capture:not(:disabled):active {
+.btn-capture:active {
   transform: scale(0.95);
 }
 
@@ -170,14 +189,14 @@ h1 {
   height: 54px;
   background: white;
   border-radius: 50%;
-  transition: background 0.3s;
 }
 
-.btn-capture:not(:disabled) .btn-icon {
-  background: #4ade80;
+.btn-placeholder {
+  width: 50px;
+  height: 50px;
 }
 
-/* Rezultat */
+/* ========== REZULTAT ========== */
 .result-wrapper {
   display: none;
   width: 100%;
@@ -191,20 +210,22 @@ h1 {
 }
 
 .result-wrapper h2 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 500;
 }
 
-#canvas-result {
+#img-result {
   width: 100%;
-  max-width: 400px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 350px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .result-buttons {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .btn-primary,
@@ -215,7 +236,6 @@ h1 {
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: transform 0.2s;
 }
 
 .btn-primary {
@@ -231,34 +251,4 @@ h1 {
 .btn-primary:active,
 .btn-secondary:active {
   transform: scale(0.97);
-}
-
-/* Hide camera când vedem rezultatul */
-.camera-wrapper.hidden {
-  display: none;
-}
-
-.btn-capture.hidden {
-  display: none;
-}
-
-/* Loading state */
-.loading::after {
-  content: '';
-  width: 30px;
-  height: 30px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-@keyframes spin {
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
 }
