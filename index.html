@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Scanner Documente</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Scanner Document</h1>
+
+      <div class="camera-wrapper">
+        <!-- Video feed -->
+        <video id="video" autoplay playsinline></video>
+
+        <!-- Canvas pentru procesare jscanify -->
+        <canvas id="canvas-scan"></canvas>
+
+        <!-- Overlay cu ghidaje -->
+        <div class="guide-overlay">
+          <div class="guide-frame">
+            <div class="corner top-left"></div>
+            <div class="corner top-right"></div>
+            <div class="corner bottom-left"></div>
+            <div class="corner bottom-right"></div>
+          </div>
+        </div>
+
+        <!-- Mesaj pentru utilizator -->
+        <div class="message" id="message">Încadrează documentul în chenar</div>
+      </div>
+
+      <!-- Buton captură -->
+      <button id="btn-capture" class="btn-capture" disabled>
+        <span class="btn-icon"></span>
+      </button>
+
+      <!-- Previzualizare rezultat -->
+      <div class="result-wrapper" id="result-wrapper">
+        <h2>Rezultat</h2>
+        <canvas id="canvas-result"></canvas>
+        <div class="result-buttons">
+          <button id="btn-retry" class="btn-secondary">Încearcă din nou</button>
+          <button id="btn-download" class="btn-primary">Descarcă</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Librării externe -->
+    <script async src="https://docs.opencv.org/4.7.0/opencv.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ColonelParrot/jscanify@master/src/jscanify.min.js"></script>
+
+    <!-- Codul nostru -->
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,264 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  color: white;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Camera wrapper */
+.camera-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+#video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#canvas-scan {
+  display: none;
+}
+
+/* Overlay cu ghidaje */
+.guide-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.guide-frame {
+  width: 85%;
+  height: 54%;
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+
+.guide-frame.detected {
+  border-color: #4ade80;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+}
+
+/* Colțuri */
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 3px solid white;
+  transition: border-color 0.3s;
+}
+
+.guide-frame.detected .corner {
+  border-color: #4ade80;
+}
+
+.corner.top-left {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 8px 0 0 0;
+}
+
+.corner.top-right {
+  top: -2px;
+  right: -2px;
+  border-left: none;
+  border-bottom: none;
+  border-radius: 0 8px 0 0;
+}
+
+.corner.bottom-left {
+  bottom: -2px;
+  left: -2px;
+  border-right: none;
+  border-top: none;
+  border-radius: 0 0 0 8px;
+}
+
+.corner.bottom-right {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+  border-radius: 0 0 8px 0;
+}
+
+/* Mesaj */
+.message {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: background 0.3s;
+}
+
+.message.success {
+  background: rgba(74, 222, 128, 0.8);
+}
+
+/* Buton captură */
+.btn-capture {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 4px solid white;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.3s,
+    transform 0.2s;
+}
+
+.btn-capture:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-capture:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.btn-icon {
+  width: 54px;
+  height: 54px;
+  background: white;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.btn-capture:not(:disabled) .btn-icon {
+  background: #4ade80;
+}
+
+/* Rezultat */
+.result-wrapper {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.result-wrapper.visible {
+  display: flex;
+}
+
+.result-wrapper h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+#canvas-result {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.result-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s;
+}
+
+.btn-primary {
+  background: #4ade80;
+  color: #1a1a2e;
+}
+
+.btn-secondary {
+  background: #3a3a5a;
+  color: white;
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* Hide camera când vedem rezultatul */
+.camera-wrapper.hidden {
+  display: none;
+}
+
+.btn-capture.hidden {
+  display: none;
+}
+
+/* Loading state */
+.loading::after {
+  content: '';
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
