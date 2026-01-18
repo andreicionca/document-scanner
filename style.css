@@ -26,6 +26,36 @@ h1 {
   font-weight: 500;
 }
 
+/* ========== START SCREEN ========== */
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.start-screen.hidden {
+  display: none;
+}
+
+.start-icon {
+  font-size: 4rem;
+}
+
+.start-screen p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  max-width: 250px;
+}
+
+.btn-large {
+  padding: 16px 40px;
+  font-size: 1.1rem;
+}
+
 /* ========== CAMERA ========== */
 .camera-wrapper {
   position: relative;
@@ -59,7 +89,6 @@ h1 {
   pointer-events: none;
 }
 
-/* A4 portrait: 210 x 297 mm = ratio 1:1.414 */
 .guide-frame {
   width: 65%;
   aspect-ratio: 1 / 1.414;
@@ -67,6 +96,14 @@ h1 {
   position: relative;
   border: 2px solid rgba(255, 255, 255, 0.5);
   border-radius: 8px;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+
+.guide-frame.detected {
+  border-color: #4ade80;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
 }
 
 /* Colțuri */
@@ -75,6 +112,11 @@ h1 {
   width: 20px;
   height: 20px;
   border: 3px solid #fff;
+  transition: border-color 0.3s;
+}
+
+.guide-frame.detected .corner {
+  border-color: #4ade80;
 }
 
 .corner.top-left {
@@ -109,7 +151,6 @@ h1 {
   border-radius: 0 0 6px 0;
 }
 
-/* Label A4 */
 .guide-label {
   position: absolute;
   top: 10px;
@@ -133,6 +174,11 @@ h1 {
   border-radius: 20px;
   font-size: 0.85rem;
   white-space: nowrap;
+  transition: background 0.3s;
+}
+
+.message.success {
+  background: rgba(74, 222, 128, 0.8);
 }
 
 /* ========== BUTOANE CONTROL ========== */
@@ -178,9 +224,15 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.3s;
 }
 
-.btn-capture:active {
+.btn-capture:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-capture:not(:disabled):active {
   transform: scale(0.95);
 }
 
@@ -189,6 +241,11 @@ h1 {
   height: 54px;
   background: white;
   border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.btn-capture:not(:disabled) .btn-icon {
+  background: #4ade80;
 }
 
 .btn-placeholder {
@@ -214,7 +271,7 @@ h1 {
   font-weight: 500;
 }
 
-#img-result {
+#canvas-result {
   width: 100%;
   max-width: 350px;
   border-radius: 8px;
