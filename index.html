@@ -1,69 +1,127 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ro">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Scanner Documente</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h1>Scanner Document A4</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>DocScanner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Camera View -->
+        <div id="camera-container">
+            <video id="video" autoplay playsinline muted></video>
+            <canvas id="overlay"></canvas>
 
-      <!-- Ecran start -->
-      <div class="start-screen" id="start-screen">
-        <div class="start-icon">📄</div>
-        <p>Scanează documente A4 cu camera telefonului</p>
-        <button id="btn-start" class="btn-primary btn-large">Pornește Camera</button>
-      </div>
+            <!-- Preset Frame Overlay -->
+            <div id="frame-guide" class="hidden">
+                <div id="frame-border"></div>
+                <span id="frame-label">A4</span>
+            </div>
 
-      <!-- Camera -->
-      <div class="camera-wrapper hidden" id="camera-wrapper">
-        <video id="video" autoplay playsinline></video>
+            <!-- Corner Indicators -->
+            <div id="corners-container">
+                <div class="corner" id="corner-tl"></div>
+                <div class="corner" id="corner-tr"></div>
+                <div class="corner" id="corner-bl"></div>
+                <div class="corner" id="corner-br"></div>
+            </div>
 
-        <!-- Ghidaj A4 -->
-        <div class="guide-overlay">
-          <div class="guide-frame" id="guide-frame">
-            <div class="corner top-left"></div>
-            <div class="corner top-right"></div>
-            <div class="corner bottom-left"></div>
-            <div class="corner bottom-right"></div>
-          </div>
-          <div class="guide-label">A4</div>
+            <!-- Lock Indicator -->
+            <div id="lock-indicator" class="hidden">
+                <span>🔒 LOCKED</span>
+            </div>
         </div>
 
-        <!-- Mesaj -->
-        <div class="message" id="message">Se încarcă...</div>
-      </div>
+        <!-- Controls -->
+        <div id="controls">
+            <!-- Preset Selector -->
+            <div id="preset-bar">
+                <button class="preset-btn active" data-preset="auto">Auto</button>
+                <button class="preset-btn" data-preset="a4">A4</button>
+                <button class="preset-btn" data-preset="a5">A5</button>
+                <button class="preset-btn" data-preset="id">Buletin</button>
+                <button class="preset-btn" data-preset="receipt">Bon</button>
+            </div>
 
-      <!-- Butoane control -->
-      <div class="controls hidden" id="controls">
-        <button id="btn-flash" class="btn-control" title="Lanternă">💡</button>
-        <button id="btn-capture" class="btn-capture" disabled title="Fotografiază">
-          <span class="btn-icon"></span>
-        </button>
-        <div class="btn-placeholder"></div>
-      </div>
+            <!-- Main Controls -->
+            <div id="main-controls">
+                <button id="btn-flash" class="control-btn" title="Flash">
+                    <span class="icon">⚡</span>
+                </button>
 
-      <!-- Rezultat -->
-      <div class="result-wrapper" id="result-wrapper">
-        <h2>Rezultat</h2>
-        <canvas id="canvas-result"></canvas>
-        <div class="result-buttons">
-          <button id="btn-retry" class="btn-secondary">Încearcă din nou</button>
-          <button id="btn-download" class="btn-primary">Descarcă</button>
+                <button id="btn-capture" class="capture-btn" disabled>
+                    <span class="capture-inner"></span>
+                </button>
+
+                <button id="btn-gallery" class="control-btn" title="Galerie">
+                    <span class="icon">🖼️</span>
+                    <span id="gallery-count" class="badge hidden">0</span>
+                </button>
+            </div>
         </div>
-      </div>
+
+        <!-- Preview/Edit Modal -->
+        <div id="preview-modal" class="modal hidden">
+            <div class="modal-header">
+                <button id="btn-back" class="modal-btn">✕</button>
+                <span>Previzualizare</span>
+                <button id="btn-confirm" class="modal-btn primary">✓</button>
+            </div>
+
+            <div id="preview-container">
+                <canvas id="preview-canvas"></canvas>
+
+                <!-- Manual Corner Adjustment -->
+                <div id="adjust-corners" class="hidden">
+                    <div class="adjust-corner" id="adj-tl" data-corner="0"></div>
+                    <div class="adjust-corner" id="adj-tr" data-corner="1"></div>
+                    <div class="adjust-corner" id="adj-br" data-corner="2"></div>
+                    <div class="adjust-corner" id="adj-bl" data-corner="3"></div>
+                </div>
+            </div>
+
+            <div id="preview-controls">
+                <button id="btn-adjust" class="edit-btn">
+                    <span>✂️</span> Ajustează
+                </button>
+                <button id="btn-enhance" class="edit-btn active">
+                    <span>✨</span> Îmbunătățește
+                </button>
+                <button id="btn-bw" class="edit-btn">
+                    <span>◐</span> Alb-Negru
+                </button>
+            </div>
+        </div>
+
+        <!-- Gallery Modal -->
+        <div id="gallery-modal" class="modal hidden">
+            <div class="modal-header">
+                <button id="btn-gallery-back" class="modal-btn">✕</button>
+                <span>Scanări (<span id="scan-count">0</span>)</span>
+                <button id="btn-download-all" class="modal-btn primary">📥</button>
+            </div>
+
+            <div id="gallery-grid"></div>
+
+            <div id="gallery-actions">
+                <button id="btn-clear-all" class="danger-btn">Șterge Tot</button>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <span id="loading-text">Se încarcă OpenCV...</span>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container"></div>
     </div>
 
-    <!-- Canvas ascuns pentru procesare -->
-    <canvas id="canvas-scan" style="display: none"></canvas>
-
-    <!-- Librării externe -->
-    <script async src="https://docs.opencv.org/4.7.0/opencv.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ColonelParrot/jscanify@master/src/jscanify.min.js"></script>
-
-    <!-- Codul nostru -->
+    <!-- OpenCV.js -->
+    <script async src="vendor/opencv.js" onload="onOpenCvReady()"></script>
     <script src="app.js"></script>
-  </body>
+</body>
 </html>
