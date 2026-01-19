@@ -28,16 +28,16 @@ const PRESETS = {
   receipt: { name: 'Bon', ratio: 2.5 },
 };
 
-// ===== CONSTANTS =====
-const LOCK_THRESHOLD = 8; // Cadre stabile necesare pentru lock
-const CORNER_STABILITY = 15; // Pixeli toleranță pentru stabilitate
-const MIN_AREA_RATIO = 0.1; // Aria minimă a documentului vs cadru
-const MAX_AREA_RATIO = 0.95; // Aria maximă a documentului vs cadru
+// ===== CONSTANTS (VALORI PERMISIVE) =====
+const LOCK_THRESHOLD = 4; // Cadre stabile necesare pentru lock
+const CORNER_STABILITY = 40; // Pixeli toleranță pentru stabilitate
+const MIN_AREA_RATIO = 0.05; // Aria minimă a documentului vs cadru
+const MAX_AREA_RATIO = 0.98; // Aria maximă a documentului vs cadru
 
 // ===== DOM ELEMENTS =====
 let video, overlay, ctx;
 let frameGuide, frameBorder, frameLabel;
-let corners = [];
+let cornerElements = [];
 let lockIndicator;
 let captureBtn, flashBtn, galleryBtn;
 let presetBtns;
@@ -46,15 +46,34 @@ let galleryModal, galleryGrid;
 
 // ===== INITIALIZATION =====
 function onOpenCvReady() {
-  cv['onRuntimeInitialized'] = () => {
-    state.cvReady = true;
-    hideLoading();
-    initApp();
-    showToast('Scanner pregătit!');
-  };
+  console.log('OpenCV.js loaded, waiting for runtime...');
+
+  if (typeof cv !== 'undefined') {
+    if (cv.Mat) {
+      // Already ready
+      state.cvReady = true;
+      hideLoading();
+      initApp();
+      showToast('Scanner pregătit!');
+    } else {
+      // Wait for runtime
+      cv['onRuntimeInitialized'] = () => {
+        console.log('OpenCV runtime initialized');
+        state.cvReady = true;
+        hideLoading();
+        initApp();
+        showToast('Scanner pregătit!');
+      };
+    }
+  }
 }
 
+// Make it global
+window.onOpenCvReady = onOpenCvReady;
+
 function initApp() {
+  console.log('Initializing app...');
+
   // Cache DOM elements
   video = document.getElementById('video');
   overlay = document.getElementById('overlay');
@@ -64,7 +83,7 @@ function initApp() {
   frameBorder = document.getElementById('frame-border');
   frameLabel = document.getElementById('frame-label');
 
-  corners = [
+  cornerElements = [
     document.getElementById('corner-tl'),
     document.getElementById('corner-tr'),
     document.getElementById('corner-br'),
@@ -151,6 +170,7 @@ async function startCamera() {
       video.play();
       handleResize();
       hideLoading();
+      console.log('Camera started, beginning frame processing');
       requestAnimationFrame(processFrame);
     };
   } catch (err) {
@@ -161,8 +181,10 @@ async function startCamera() {
 }
 
 function handleResize() {
-  overlay.width = video.videoWidth || video.clientWidth;
-  overlay.height = video.videoHeight || video.clientHeight;
+  if (video.videoWidth && video.videoHeight) {
+    overlay.width = video.videoWidth;
+    overlay.height = video.videoHeight;
+  }
 }
 
 // ===== FRAME PROCESSING =====
@@ -179,17 +201,23 @@ function processFrame() {
     // Detect document corners
     const detectedCorners = detectDocument();
 
-    if (detectedCorners) {
+    if (detectedCorners && detectedCorners.length === 4) {
+      // Avem document detectat - activează butonul
+      captureBtn.disabled = false;
+
       // Check stability for lock
       checkStability(detectedCorners);
 
       // Draw detected corners
       drawDetection(detectedCorners);
 
+      // Save corners
       state.detectedCorners = detectedCorners;
     } else {
+      // Nu avem document
       resetLock();
       hideCorners();
+      state.detectedCorners = null;
     }
   } catch (err) {
     console.error('Frame processing error:', err);
@@ -199,93 +227,115 @@ function processFrame() {
 }
 
 function detectDocument() {
-  // Create Mat from video frame
-  const src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
-  const cap = new cv.VideoCapture(video);
-  cap.read(src);
+  let src = null;
+  let gray = null;
+  let blurred = null;
+  let edges = null;
+  let dilated = null;
+  let kernel = null;
+  let contours = null;
+  let hierarchy = null;
 
-  // Convert to grayscale
-  const gray = new cv.Mat();
-  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+  try {
+    // Create Mat from video frame
+    src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+    const cap = new cv.VideoCapture(video);
+    cap.read(src);
 
-  // Apply Gaussian blur
-  const blurred = new cv.Mat();
-  cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+    // Convert to grayscale
+    gray = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
 
-  // Edge detection (Canny)
-  const edges = new cv.Mat();
-  cv.Canny(blurred, edges, 50, 150);
+    // Apply Gaussian blur
+    blurred = new cv.Mat();
+    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
 
-  // Dilate to close gaps
-  const dilated = new cv.Mat();
-  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
-  cv.dilate(edges, dilated, kernel);
+    // Edge detection (Canny)
+    edges = new cv.Mat();
+    cv.Canny(blurred, edges, 30, 100);
 
-  // Find contours
-  const contours = new cv.MatVector();
-  const hierarchy = new cv.Mat();
-  cv.findContours(dilated, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    // Dilate to close gaps
+    dilated = new cv.Mat();
+    kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
+    cv.dilate(edges, dilated, kernel);
 
-  let bestQuad = null;
-  let maxArea = 0;
-  const frameArea = video.videoWidth * video.videoHeight;
+    // Find contours
+    contours = new cv.MatVector();
+    hierarchy = new cv.Mat();
+    cv.findContours(dilated, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-  // Find largest quadrilateral
-  for (let i = 0; i < contours.size(); i++) {
-    const contour = contours.get(i);
-    const area = cv.contourArea(contour);
+    let bestQuad = null;
+    let maxArea = 0;
+    const frameArea = video.videoWidth * video.videoHeight;
 
-    // Skip if too small or too large
-    if (area < frameArea * MIN_AREA_RATIO || area > frameArea * MAX_AREA_RATIO) {
-      continue;
-    }
+    // Find largest quadrilateral
+    for (let i = 0; i < contours.size(); i++) {
+      const contour = contours.get(i);
+      const area = cv.contourArea(contour);
 
-    // Approximate polygon
-    const peri = cv.arcLength(contour, true);
-    const approx = new cv.Mat();
-    cv.approxPolyDP(contour, approx, 0.02 * peri, true);
-
-    // Check if it's a quadrilateral
-    if (approx.rows === 4 && cv.isContourConvex(approx) && area > maxArea) {
-      maxArea = area;
-      bestQuad = [];
-
-      for (let j = 0; j < 4; j++) {
-        bestQuad.push({
-          x: approx.data32S[j * 2],
-          y: approx.data32S[j * 2 + 1],
-        });
+      // Skip if too small or too large
+      if (area < frameArea * MIN_AREA_RATIO || area > frameArea * MAX_AREA_RATIO) {
+        continue;
       }
+
+      // Approximate polygon
+      const peri = cv.arcLength(contour, true);
+      const approx = new cv.Mat();
+      cv.approxPolyDP(contour, approx, 0.02 * peri, true);
+
+      // Check if it's a quadrilateral
+      if (approx.rows === 4 && cv.isContourConvex(approx) && area > maxArea) {
+        maxArea = area;
+        bestQuad = [];
+
+        for (let j = 0; j < 4; j++) {
+          bestQuad.push({
+            x: approx.data32S[j * 2],
+            y: approx.data32S[j * 2 + 1],
+          });
+        }
+      }
+
+      approx.delete();
     }
 
-    approx.delete();
+    // Cleanup
+    src.delete();
+    gray.delete();
+    blurred.delete();
+    edges.delete();
+    dilated.delete();
+    kernel.delete();
+    contours.delete();
+    hierarchy.delete();
+
+    if (bestQuad) {
+      return orderCorners(bestQuad);
+    }
+
+    return null;
+  } catch (err) {
+    console.error('Detection error:', err);
+    // Cleanup on error
+    if (src) src.delete();
+    if (gray) gray.delete();
+    if (blurred) blurred.delete();
+    if (edges) edges.delete();
+    if (dilated) dilated.delete();
+    if (kernel) kernel.delete();
+    if (contours) contours.delete();
+    if (hierarchy) hierarchy.delete();
+    return null;
   }
-
-  // Cleanup
-  src.delete();
-  gray.delete();
-  blurred.delete();
-  edges.delete();
-  dilated.delete();
-  kernel.delete();
-  contours.delete();
-  hierarchy.delete();
-
-  if (bestQuad) {
-    // Order corners: top-left, top-right, bottom-right, bottom-left
-    return orderCorners(bestQuad);
-  }
-
-  return null;
 }
 
 function orderCorners(corners) {
   // Sort by Y coordinate
-  corners.sort((a, b) => a.y - b.y);
+  const sorted = [...corners].sort((a, b) => a.y - b.y);
 
   // Top two and bottom two
-  const top = corners.slice(0, 2);
-  const bottom = corners.slice(2, 4);
+  const top = sorted.slice(0, 2);
+  const bottom = sorted.slice(2, 4);
 
   // Sort by X coordinate
   top.sort((a, b) => a.x - b.x);
@@ -295,8 +345,8 @@ function orderCorners(corners) {
 }
 
 function checkStability(newCorners) {
-  if (!state.detectedCorners) {
-    state.lockFrames = 0;
+  if (!state.detectedCorners || state.detectedCorners.length !== 4) {
+    state.lockFrames = 1;
     return;
   }
 
@@ -314,32 +364,35 @@ function checkStability(newCorners) {
 
   if (stable) {
     state.lockFrames++;
-
-    if (state.lockFrames >= LOCK_THRESHOLD && !state.isLocked) {
-      state.isLocked = true;
-      lockIndicator.classList.remove('hidden');
-      captureBtn.classList.add('ready');
-      captureBtn.disabled = false;
-
-      // Haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-    }
   } else {
-    resetLock();
+    state.lockFrames = 1;
+  }
+
+  // Lock după câteva cadre stabile
+  if (state.lockFrames >= LOCK_THRESHOLD && !state.isLocked) {
+    state.isLocked = true;
+    lockIndicator.classList.remove('hidden');
+    captureBtn.classList.add('ready');
+
+    // Haptic feedback if available
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
   }
 }
 
 function resetLock() {
   state.lockFrames = 0;
   state.isLocked = false;
+  state.detectedCorners = null;
   lockIndicator.classList.add('hidden');
   captureBtn.classList.remove('ready');
   captureBtn.disabled = true;
 }
 
 function drawDetection(corners) {
+  if (!corners || corners.length !== 4) return;
+
   // Scale corners to overlay size
   const scaleX = overlay.width / video.videoWidth;
   const scaleY = overlay.height / video.videoHeight;
@@ -358,7 +411,7 @@ function drawDetection(corners) {
   ctx.closePath();
 
   // Fill with semi-transparent overlay
-  ctx.fillStyle = state.isLocked ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 152, 0, 0.15)';
+  ctx.fillStyle = state.isLocked ? 'rgba(76, 175, 80, 0.25)' : 'rgba(255, 152, 0, 0.2)';
   ctx.fill();
 
   // Stroke border
@@ -366,39 +419,37 @@ function drawDetection(corners) {
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // Update corner indicators
-  const displayScale = video.clientWidth / video.videoWidth;
-  corners.forEach((el, i) => {
-    el.style.left = corners[i].x * displayScale + 'px';
-    el.style.top = corners[i].y * displayScale + 'px';
-    el.classList.add('visible');
-    el.classList.toggle('locked', state.isLocked);
-  });
-
   // Update DOM corner indicators position
-  const cornerEls = document.querySelectorAll('.corner');
-  scaled.forEach((c, i) => {
-    const displayScaleX = video.clientWidth / overlay.width;
-    const displayScaleY = video.clientHeight / overlay.height;
-    cornerEls[i].style.left = c.x * displayScaleX + 'px';
-    cornerEls[i].style.top = c.y * displayScaleY + 'px';
-    cornerEls[i].classList.add('visible');
-    cornerEls[i].classList.toggle('locked', state.isLocked);
+  const displayScaleX = video.clientWidth / video.videoWidth;
+  const displayScaleY = video.clientHeight / video.videoHeight;
+
+  cornerElements.forEach((el, i) => {
+    if (el && corners[i]) {
+      el.style.left = corners[i].x * displayScaleX + 'px';
+      el.style.top = corners[i].y * displayScaleY + 'px';
+      el.classList.add('visible');
+      el.classList.toggle('locked', state.isLocked);
+    }
   });
 }
 
 function hideCorners() {
-  document.querySelectorAll('.corner').forEach((el) => {
-    el.classList.remove('visible', 'locked');
+  cornerElements.forEach((el) => {
+    if (el) {
+      el.classList.remove('visible', 'locked');
+    }
   });
 }
 
 // ===== CAPTURE & PROCESSING =====
 async function captureDocument() {
-  if (!state.isLocked || !state.detectedCorners || state.processing) {
+  if (!state.detectedCorners || state.processing) {
+    console.log('Cannot capture: no corners or processing');
+    showToast('Poziționează documentul în cadru');
     return;
   }
 
+  console.log('Capturing document...');
   state.processing = true;
   showLoading('Procesare...');
 
@@ -413,10 +464,12 @@ async function captureDocument() {
     // Store capture data
     state.currentCapture = {
       imageData: captureCanvas.toDataURL('image/jpeg', 0.95),
-      corners: [...state.detectedCorners],
+      corners: JSON.parse(JSON.stringify(state.detectedCorners)), // Deep copy
       width: video.videoWidth,
       height: video.videoHeight,
     };
+
+    console.log('Captured corners:', state.currentCapture.corners);
 
     // Apply perspective correction
     await applyPerspectiveCorrection();
@@ -425,7 +478,7 @@ async function captureDocument() {
     showPreview();
   } catch (err) {
     hideLoading();
-    showToast('Eroare la procesare');
+    showToast('Eroare la procesare: ' + err.message);
     console.error('Capture error:', err);
   }
 
@@ -433,76 +486,103 @@ async function captureDocument() {
 }
 
 async function applyPerspectiveCorrection() {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
+
     img.onload = () => {
-      const corners = state.currentCapture.corners;
+      try {
+        const corners = state.currentCapture.corners;
 
-      // Calculate output dimensions
-      const width1 = Math.hypot(corners[1].x - corners[0].x, corners[1].y - corners[0].y);
-      const width2 = Math.hypot(corners[2].x - corners[3].x, corners[2].y - corners[3].y);
-      const height1 = Math.hypot(corners[3].x - corners[0].x, corners[3].y - corners[0].y);
-      const height2 = Math.hypot(corners[2].x - corners[1].x, corners[2].y - corners[1].y);
+        // Calculate output dimensions
+        const width1 = Math.hypot(corners[1].x - corners[0].x, corners[1].y - corners[0].y);
+        const width2 = Math.hypot(corners[2].x - corners[3].x, corners[2].y - corners[3].y);
+        const height1 = Math.hypot(corners[3].x - corners[0].x, corners[3].y - corners[0].y);
+        const height2 = Math.hypot(corners[2].x - corners[1].x, corners[2].y - corners[1].y);
 
-      const outWidth = Math.round(Math.max(width1, width2));
-      const outHeight = Math.round(Math.max(height1, height2));
+        const outWidth = Math.round(Math.max(width1, width2));
+        const outHeight = Math.round(Math.max(height1, height2));
 
-      // Create source Mat
-      const src = cv.imread(img);
+        console.log('Output dimensions:', outWidth, 'x', outHeight);
 
-      // Define source and destination points
-      const srcPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
-        corners[0].x,
-        corners[0].y,
-        corners[1].x,
-        corners[1].y,
-        corners[2].x,
-        corners[2].y,
-        corners[3].x,
-        corners[3].y,
-      ]);
+        // Create source Mat from image
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = img.width;
+        tempCanvas.height = img.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(img, 0, 0);
 
-      const dstPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
-        0,
-        0,
-        outWidth,
-        0,
-        outWidth,
-        outHeight,
-        0,
-        outHeight,
-      ]);
+        const src = cv.imread(tempCanvas);
 
-      // Get perspective transform matrix
-      const M = cv.getPerspectiveTransform(srcPoints, dstPoints);
+        // Define source and destination points
+        const srcPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
+          corners[0].x,
+          corners[0].y,
+          corners[1].x,
+          corners[1].y,
+          corners[2].x,
+          corners[2].y,
+          corners[3].x,
+          corners[3].y,
+        ]);
 
-      // Apply warp perspective
-      const dst = new cv.Mat();
-      const dsize = new cv.Size(outWidth, outHeight);
-      cv.warpPerspective(src, dst, M, dsize, cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+        const dstPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
+          0,
+          0,
+          outWidth,
+          0,
+          outWidth,
+          outHeight,
+          0,
+          outHeight,
+        ]);
 
-      // Apply enhancements
-      if (state.enhance) {
-        applyEnhancements(dst);
+        // Get perspective transform matrix
+        const M = cv.getPerspectiveTransform(srcPoints, dstPoints);
+
+        // Apply warp perspective
+        const dst = new cv.Mat();
+        const dsize = new cv.Size(outWidth, outHeight);
+        cv.warpPerspective(
+          src,
+          dst,
+          M,
+          dsize,
+          cv.INTER_LINEAR,
+          cv.BORDER_CONSTANT,
+          new cv.Scalar()
+        );
+
+        // Apply enhancements if enabled
+        if (state.enhance && !state.bw) {
+          applyEnhancements(dst);
+        }
+
+        if (state.bw) {
+          applyBlackWhite(dst);
+        }
+
+        // Output to preview canvas
+        previewCanvas.width = outWidth;
+        previewCanvas.height = outHeight;
+        cv.imshow(previewCanvas, dst);
+
+        // Cleanup
+        src.delete();
+        dst.delete();
+        srcPoints.delete();
+        dstPoints.delete();
+        M.delete();
+
+        console.log('Perspective correction done');
+        resolve();
+      } catch (err) {
+        console.error('Warp error:', err);
+        reject(err);
       }
+    };
 
-      if (state.bw) {
-        applyBlackWhite(dst);
-      }
-
-      // Output to preview canvas
-      previewCanvas.width = outWidth;
-      previewCanvas.height = outHeight;
-      cv.imshow(previewCanvas, dst);
-
-      // Cleanup
-      src.delete();
-      dst.delete();
-      srcPoints.delete();
-      dstPoints.delete();
-      M.delete();
-
-      resolve();
+    img.onerror = () => {
+      reject(new Error('Failed to load captured image'));
     };
 
     img.src = state.currentCapture.imageData;
@@ -510,43 +590,43 @@ async function applyPerspectiveCorrection() {
 }
 
 function applyEnhancements(mat) {
-  // Convert to LAB for better contrast enhancement
-  const lab = new cv.Mat();
-  cv.cvtColor(mat, lab, cv.COLOR_RGBA2RGB);
-  cv.cvtColor(lab, lab, cv.COLOR_RGB2Lab);
-
-  // Split channels
-  const channels = new cv.MatVector();
-  cv.split(lab, channels);
-
-  // Apply CLAHE to L channel
-  const clahe = new cv.CLAHE(2.0, new cv.Size(8, 8));
-  clahe.apply(channels.get(0), channels.get(0));
-
-  // Merge channels
-  cv.merge(channels, lab);
-
-  // Convert back to RGBA
-  cv.cvtColor(lab, mat, cv.COLOR_Lab2RGB);
-  cv.cvtColor(mat, mat, cv.COLOR_RGB2RGBA);
-
-  // Cleanup
-  lab.delete();
-  channels.delete();
+  try {
+    // Simple contrast enhancement using convertTo
+    const enhanced = new cv.Mat();
+    mat.convertTo(enhanced, -1, 1.2, 10); // alpha=1.2 (contrast), beta=10 (brightness)
+    enhanced.copyTo(mat);
+    enhanced.delete();
+  } catch (err) {
+    console.error('Enhancement error:', err);
+  }
 }
 
 function applyBlackWhite(mat) {
-  // Convert to grayscale
-  const gray = new cv.Mat();
-  cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+  try {
+    // Convert to grayscale
+    const gray = new cv.Mat();
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
 
-  // Apply adaptive threshold
-  cv.adaptiveThreshold(gray, gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 21, 10);
+    // Apply adaptive threshold
+    const thresh = new cv.Mat();
+    cv.adaptiveThreshold(
+      gray,
+      thresh,
+      255,
+      cv.ADAPTIVE_THRESH_GAUSSIAN_C,
+      cv.THRESH_BINARY,
+      21,
+      10
+    );
 
-  // Convert back to RGBA
-  cv.cvtColor(gray, mat, cv.COLOR_GRAY2RGBA);
+    // Convert back to RGBA
+    cv.cvtColor(thresh, mat, cv.COLOR_GRAY2RGBA);
 
-  gray.delete();
+    gray.delete();
+    thresh.delete();
+  } catch (err) {
+    console.error('B&W error:', err);
+  }
 }
 
 // ===== PREVIEW =====
@@ -589,30 +669,36 @@ function toggleAdjustMode() {
   const adjustContainer = document.getElementById('adjust-corners');
   const btn = document.getElementById('btn-adjust');
 
-  adjustContainer.classList.toggle('hidden');
-  btn.classList.toggle('active');
+  if (adjustContainer) {
+    adjustContainer.classList.toggle('hidden');
+    btn.classList.toggle('active');
 
-  if (!adjustContainer.classList.contains('hidden')) {
-    setupCornerAdjustment();
+    if (!adjustContainer.classList.contains('hidden')) {
+      showToast('Funcție în dezvoltare');
+    }
   }
-}
-
-function setupCornerAdjustment() {
-  // TODO: Implement draggable corners for manual adjustment
-  // This would allow fine-tuning of corner positions
-  showToast('Trage colțurile pentru ajustare');
 }
 
 async function toggleEnhance() {
   state.enhance = !state.enhance;
   document.getElementById('btn-enhance').classList.toggle('active', state.enhance);
-  await applyPerspectiveCorrection();
+
+  if (state.currentCapture) {
+    showLoading('Procesare...');
+    await applyPerspectiveCorrection();
+    hideLoading();
+  }
 }
 
 async function toggleBW() {
   state.bw = !state.bw;
   document.getElementById('btn-bw').classList.toggle('active', state.bw);
-  await applyPerspectiveCorrection();
+
+  if (state.currentCapture) {
+    showLoading('Procesare...');
+    await applyPerspectiveCorrection();
+    hideLoading();
+  }
 }
 
 // ===== GALLERY =====
@@ -630,6 +716,12 @@ function closeGallery() {
 function renderGallery() {
   galleryGrid.innerHTML = '';
   document.getElementById('scan-count').textContent = state.scans.length;
+
+  if (state.scans.length === 0) {
+    galleryGrid.innerHTML =
+      '<p style="grid-column: 1/-1; text-align: center; color: #999; padding: 40px;">Nicio scanare încă</p>';
+    return;
+  }
 
   state.scans.forEach((scan, index) => {
     const item = document.createElement('div');
@@ -658,6 +750,11 @@ function deleteScan(id) {
 }
 
 function clearAll() {
+  if (state.scans.length === 0) {
+    showToast('Nu există scanări');
+    return;
+  }
+
   if (confirm('Ștergi toate scanările?')) {
     state.scans = [];
     saveScans();
@@ -716,7 +813,7 @@ async function toggleFlash() {
   if (!state.stream) return;
 
   const track = state.stream.getVideoTracks()[0];
-  const capabilities = track.getCapabilities();
+  const capabilities = track.getCapabilities ? track.getCapabilities() : {};
 
   if (!capabilities.torch) {
     showToast('Flash nu este disponibil');
@@ -731,28 +828,26 @@ async function toggleFlash() {
     });
 
     flashBtn.classList.toggle('active', state.flashEnabled);
+    showToast(state.flashEnabled ? 'Flash pornit' : 'Flash oprit');
   } catch (err) {
     showToast('Eroare la activare flash');
+    console.error('Flash error:', err);
   }
 }
 
 // ===== STORAGE =====
 function saveScans() {
   try {
-    // Store only metadata, images are too large for localStorage
-    // In production, use IndexedDB
-    const metadata = state.scans.map((s) => ({
-      id: s.id,
-      timestamp: s.timestamp,
-      image: s.image, // Warning: may exceed localStorage limit
-    }));
-
-    localStorage.setItem('docscanner_scans', JSON.stringify(metadata));
+    localStorage.setItem('docscanner_scans', JSON.stringify(state.scans));
   } catch (err) {
     console.warn('Storage full, clearing old scans');
-    // Keep only last 5 scans
-    state.scans = state.scans.slice(-5);
-    saveScans();
+    // Keep only last 3 scans
+    state.scans = state.scans.slice(-3);
+    try {
+      localStorage.setItem('docscanner_scans', JSON.stringify(state.scans));
+    } catch (e) {
+      console.error('Cannot save scans:', e);
+    }
   }
 }
 
@@ -765,6 +860,7 @@ function loadScans() {
     }
   } catch (err) {
     console.error('Error loading scans:', err);
+    state.scans = [];
   }
 }
 
@@ -772,30 +868,54 @@ function updateGalleryCount() {
   const badge = document.getElementById('gallery-count');
   const count = state.scans.length;
 
-  badge.textContent = count;
-  badge.classList.toggle('hidden', count === 0);
+  if (badge) {
+    badge.textContent = count;
+    badge.classList.toggle('hidden', count === 0);
+  }
 }
 
 // ===== UI HELPERS =====
 function showLoading(text = 'Se încarcă...') {
-  document.getElementById('loading-text').textContent = text;
-  document.getElementById('loading').classList.remove('hidden');
+  const loadingText = document.getElementById('loading-text');
+  const loading = document.getElementById('loading');
+
+  if (loadingText) loadingText.textContent = text;
+  if (loading) loading.classList.remove('hidden');
 }
 
 function hideLoading() {
-  document.getElementById('loading').classList.add('hidden');
+  const loading = document.getElementById('loading');
+  if (loading) loading.classList.add('hidden');
 }
 
 function showToast(message) {
   const container = document.getElementById('toast-container');
+  if (!container) return;
+
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.textContent = message;
   container.appendChild(toast);
 
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.remove();
+    }
+  }, 3000);
 }
 
 // ===== STARTUP =====
-// Show loading until OpenCV is ready
+console.log('App.js loaded');
 showLoading('Se încarcă OpenCV...');
+
+// Fallback: check if OpenCV is already loaded
+if (typeof cv !== 'undefined' && cv.Mat) {
+  console.log('OpenCV already available');
+  state.cvReady = true;
+  hideLoading();
+  if (document.readyState === 'complete') {
+    initApp();
+  } else {
+    window.addEventListener('DOMContentLoaded', initApp);
+  }
+}
