@@ -237,10 +237,15 @@ function detectDocument() {
   let hierarchy = null;
 
   try {
-    // Create Mat from video frame
-    src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
-    const cap = new cv.VideoCapture(video);
-    cap.read(src);
+    // METODA CORECTĂ: citește prin canvas, nu VideoCapture
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.drawImage(video, 0, 0);
+
+    // Citește din canvas
+    src = cv.imread(tempCanvas);
 
     // Convert to grayscale
     gray = new cv.Mat();
@@ -273,17 +278,14 @@ function detectDocument() {
       const contour = contours.get(i);
       const area = cv.contourArea(contour);
 
-      // Skip if too small or too large
       if (area < frameArea * MIN_AREA_RATIO || area > frameArea * MAX_AREA_RATIO) {
         continue;
       }
 
-      // Approximate polygon
       const peri = cv.arcLength(contour, true);
       const approx = new cv.Mat();
       cv.approxPolyDP(contour, approx, 0.02 * peri, true);
 
-      // Check if it's a quadrilateral
       if (approx.rows === 4 && cv.isContourConvex(approx) && area > maxArea) {
         maxArea = area;
         bestQuad = [];
@@ -315,16 +317,18 @@ function detectDocument() {
 
     return null;
   } catch (err) {
-    console.error('Detection error:', err);
+    console.error('Detection error:', err.message || err);
     // Cleanup on error
-    if (src) src.delete();
-    if (gray) gray.delete();
-    if (blurred) blurred.delete();
-    if (edges) edges.delete();
-    if (dilated) dilated.delete();
-    if (kernel) kernel.delete();
-    if (contours) contours.delete();
-    if (hierarchy) hierarchy.delete();
+    try {
+      if (src) src.delete();
+      if (gray) gray.delete();
+      if (blurred) blurred.delete();
+      if (edges) edges.delete();
+      if (dilated) dilated.delete();
+      if (kernel) kernel.delete();
+      if (contours) contours.delete();
+      if (hierarchy) hierarchy.delete();
+    } catch (e) {}
     return null;
   }
 }
