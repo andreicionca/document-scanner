@@ -13,113 +13,98 @@
   </head>
   <body>
     <div id="app">
-      <!-- Camera View -->
-      <div id="camera-container">
-        <video id="video" autoplay playsinline muted></video>
-        <canvas id="overlay"></canvas>
-
-        <!-- Preset Frame Overlay -->
-        <div id="frame-guide" class="hidden">
-          <div id="frame-border"></div>
-          <span id="frame-label">A4</span>
+      <!-- ECRAN 1: Camera -->
+      <div id="screen-camera" class="screen active">
+        <div id="camera-container">
+          <video id="video" autoplay playsinline muted></video>
         </div>
 
-        <!-- Corner Indicators -->
-        <div id="corners-container">
-          <div class="corner" id="corner-tl"></div>
-          <div class="corner" id="corner-tr"></div>
-          <div class="corner" id="corner-bl"></div>
-          <div class="corner" id="corner-br"></div>
-        </div>
-
-        <!-- Lock Indicator -->
-        <div id="lock-indicator" class="hidden">
-          <span>🔒 LOCKED</span>
-        </div>
-      </div>
-
-      <!-- Controls -->
-      <div id="controls">
-        <!-- Preset Selector -->
-        <div id="preset-bar">
-          <button class="preset-btn active" data-preset="auto">Auto</button>
-          <button class="preset-btn" data-preset="a4">A4</button>
-          <button class="preset-btn" data-preset="a5">A5</button>
-          <button class="preset-btn" data-preset="id">Buletin</button>
-          <button class="preset-btn" data-preset="receipt">Bon</button>
-        </div>
-
-        <!-- Main Controls -->
-        <div id="main-controls">
-          <button id="btn-flash" class="control-btn" title="Flash">
-            <span class="icon">⚡</span>
+        <div id="camera-controls">
+          <button id="btn-gallery" class="icon-btn">
+            🖼️
+            <span id="gallery-badge" class="badge hidden">0</span>
           </button>
 
-          <button id="btn-capture" class="capture-btn" disabled>
+          <button id="btn-capture" class="capture-btn">
             <span class="capture-inner"></span>
           </button>
 
-          <button id="btn-gallery" class="control-btn" title="Galerie">
-            <span class="icon">🖼️</span>
-            <span id="gallery-count" class="badge hidden">0</span>
-          </button>
+          <button id="btn-switch" class="icon-btn">🔄</button>
         </div>
       </div>
 
-      <!-- Preview/Edit Modal -->
-      <div id="preview-modal" class="modal hidden">
-        <div class="modal-header">
-          <button id="btn-back" class="modal-btn">✕</button>
+      <!-- ECRAN 2: Selectare Colțuri -->
+      <div id="screen-crop" class="screen">
+        <div class="screen-header">
+          <button id="btn-crop-back" class="header-btn">✕</button>
+          <span>Selectează colțurile</span>
+          <button id="btn-crop-done" class="header-btn primary">✓</button>
+        </div>
+
+        <div id="crop-container">
+          <canvas id="crop-canvas"></canvas>
+
+          <!-- Colțuri draggable -->
+          <div class="corner-handle" data-corner="0" id="handle-tl"></div>
+          <div class="corner-handle" data-corner="1" id="handle-tr"></div>
+          <div class="corner-handle" data-corner="2" id="handle-br"></div>
+          <div class="corner-handle" data-corner="3" id="handle-bl"></div>
+
+          <!-- SVG pentru linii -->
+          <svg id="crop-overlay">
+            <polygon id="crop-polygon"></polygon>
+          </svg>
+        </div>
+
+        <div class="screen-footer">
+          <p>Trage colțurile pentru a selecta documentul</p>
+        </div>
+      </div>
+
+      <!-- ECRAN 3: Previzualizare & Export -->
+      <div id="screen-preview" class="screen">
+        <div class="screen-header">
+          <button id="btn-preview-back" class="header-btn">←</button>
           <span>Previzualizare</span>
-          <button id="btn-confirm" class="modal-btn primary">✓</button>
+          <button id="btn-save" class="header-btn primary">💾</button>
         </div>
 
         <div id="preview-container">
           <canvas id="preview-canvas"></canvas>
-
-          <!-- Manual Corner Adjustment -->
-          <div id="adjust-corners" class="hidden">
-            <div class="adjust-corner" id="adj-tl" data-corner="0"></div>
-            <div class="adjust-corner" id="adj-tr" data-corner="1"></div>
-            <div class="adjust-corner" id="adj-br" data-corner="2"></div>
-            <div class="adjust-corner" id="adj-bl" data-corner="3"></div>
-          </div>
         </div>
 
-        <div id="preview-controls">
-          <button id="btn-adjust" class="edit-btn"><span>✂️</span> Ajustează</button>
-          <button id="btn-enhance" class="edit-btn active"><span>✨</span> Îmbunătățește</button>
-          <button id="btn-bw" class="edit-btn"><span>◐</span> Alb-Negru</button>
+        <div id="preview-options">
+          <button class="option-btn active" data-filter="original">Original</button>
+          <button class="option-btn" data-filter="enhance">Îmbunătățit</button>
+          <button class="option-btn" data-filter="bw">Alb-Negru</button>
+          <button class="option-btn" data-filter="grayscale">Gri</button>
         </div>
       </div>
 
-      <!-- Gallery Modal -->
-      <div id="gallery-modal" class="modal hidden">
-        <div class="modal-header">
-          <button id="btn-gallery-back" class="modal-btn">✕</button>
+      <!-- ECRAN 4: Galerie -->
+      <div id="screen-gallery" class="screen">
+        <div class="screen-header">
+          <button id="btn-gallery-back" class="header-btn">✕</button>
           <span>Scanări (<span id="scan-count">0</span>)</span>
-          <button id="btn-download-all" class="modal-btn primary">📥</button>
+          <button id="btn-download-all" class="header-btn">📥</button>
         </div>
 
         <div id="gallery-grid"></div>
 
-        <div id="gallery-actions">
-          <button id="btn-clear-all" class="danger-btn">Șterge Tot</button>
-        </div>
+        <button id="btn-clear-all" class="danger-btn">Șterge Tot</button>
       </div>
 
-      <!-- Loading Overlay -->
+      <!-- Loading -->
       <div id="loading" class="hidden">
         <div class="spinner"></div>
-        <span id="loading-text">Se încarcă OpenCV...</span>
+        <span id="loading-text">Se încarcă...</span>
       </div>
 
-      <!-- Toast Notifications -->
+      <!-- Toast -->
       <div id="toast-container"></div>
     </div>
 
-    <!-- OpenCV.js -->
-    <script async src="vendor/opencv.js" onload="onOpenCvReady()"></script>
+    <script src="https://docs.opencv.org/4.9.0/opencv.js" onload="onOpenCvReady()"></script>
     <script src="app.js"></script>
   </body>
 </html>
