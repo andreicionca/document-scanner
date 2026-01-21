@@ -874,6 +874,14 @@ body {
 /* ==================== ECRAN CONFIRMARE ==================== */
 #screen-confirm {
   background: #0a0a0a;
+  display: none;
+  flex-direction: column;
+  height: 100vh; /* Forțează ecranul să fie fix cât fereastra */
+  overflow: hidden;
+}
+
+#screen-confirm.active {
+  display: flex;
 }
 
 .confirm-header {
@@ -889,14 +897,18 @@ body {
 
 .confirm-preview {
   flex: 1;
+  overflow-y: auto; /* Permite scroll vertical dacă poza e prea mare */
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 16px;
+  -webkit-overflow-scrolling: touch; /* Scroll fluid pe iPhone */
 }
 
 .confirm-preview img {
   max-width: 100%;
+  height: auto;
   max-height: 100%;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -904,10 +916,13 @@ body {
 
 .confirm-actions {
   padding: 16px;
-  padding-bottom: 32px;
+  padding-bottom: 30px;
+  background: #141414; /* Fundal ușor diferit ca să se vadă peste scroll */
+  border-top: 1px solid #2a2a2a;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex-shrink: 0; /* Previne comprimarea butoanelor */
 }
 
 .confirm-actions .btn-secondary,
