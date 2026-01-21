@@ -919,22 +919,34 @@ body {
 }
 
 .confirm-actions {
-  padding: 16px;
-  padding-bottom: 30px;
-  background: #141414; /* Fundal ușor diferit ca să se vadă peste scroll */
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* Siguranță pentru iPhone */
+  background: #141414;
   border-top: 1px solid #2a2a2a;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex-shrink: 0; /* Previne comprimarea butoanelor */
+  flex-direction: row; /* Aliniere pe orizontală */
+  gap: 10px; /* Spațiu între ele */
+  flex-shrink: 0; /* Nu lăsăm zona să fie strivită */
 }
 
 .confirm-actions .btn-secondary,
 .confirm-actions .btn-primary {
+  flex: 1; /* Fiecare buton ocupă jumătate din lățime */
+  padding: 12px 8px; /* Padding mai mic pe lateral */
+  font-size: 14px; /* Text puțin mai mic să încapă pe un rând */
+  height: 50px; /* Înălțime fixă pentru consistență */
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap; /* Împiedică textul să sară pe rândul doi */
+}
+
+/* Ajustăm iconițele să fie puțin mai mici dacă e nevoie */
+.confirm-actions svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 /* ==================== MODAL DESCĂRCARE ==================== */
