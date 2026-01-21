@@ -1,11 +1,13 @@
+<!-- index.html -->
 <!doctype html>
 <html lang="ro">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>DocScanner</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Scanner Documente</title>
+    <link rel="stylesheet" href="css/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>
       eruda.init();
@@ -13,98 +15,44 @@
   </head>
   <body>
     <div id="app">
-      <!-- ECRAN 1: Camera -->
-      <div id="screen-camera" class="screen active">
-        <div id="camera-container">
-          <video id="video" autoplay playsinline muted></video>
+      <!-- Ecran cameră -->
+      <section id="screen-camera" class="screen active">
+        <video id="preview" autoplay playsinline></video>
+        <div class="camera-overlay">
+          <div class="document-guide"></div>
         </div>
-
-        <div id="camera-controls">
-          <button id="btn-gallery" class="icon-btn">
-            🖼️
-            <span id="gallery-badge" class="badge hidden">0</span>
+        <div class="bottom-bar">
+          <button id="btn-gallery" class="btn-icon">🖼️</button>
+          <button id="btn-capture" class="btn-capture"></button>
+          <button id="btn-pages" class="btn-icon">
+            <span id="page-count">0</span>
           </button>
-
-          <button id="btn-capture" class="capture-btn">
-            <span class="capture-inner"></span>
-          </button>
-
-          <button id="btn-switch" class="icon-btn">🔄</button>
         </div>
-      </div>
+      </section>
 
-      <!-- ECRAN 2: Selectare Colțuri -->
-      <div id="screen-crop" class="screen">
-        <div class="screen-header">
-          <button id="btn-crop-back" class="header-btn">✕</button>
-          <span>Selectează colțurile</span>
-          <button id="btn-crop-done" class="header-btn primary">✓</button>
+      <!-- Ecran editare -->
+      <section id="screen-edit" class="screen">
+        <canvas id="edit-canvas"></canvas>
+        <div class="bottom-bar">
+          <button id="btn-retake" class="btn-text">Refă</button>
+          <button id="btn-confirm" class="btn-text primary">Confirmă</button>
         </div>
+      </section>
 
-        <div id="crop-container">
-          <canvas id="crop-canvas"></canvas>
-
-          <!-- Colțuri draggable -->
-          <div class="corner-handle" data-corner="0" id="handle-tl"></div>
-          <div class="corner-handle" data-corner="1" id="handle-tr"></div>
-          <div class="corner-handle" data-corner="2" id="handle-br"></div>
-          <div class="corner-handle" data-corner="3" id="handle-bl"></div>
-
-          <!-- SVG pentru linii -->
-          <svg id="crop-overlay">
-            <polygon id="crop-polygon"></polygon>
-          </svg>
+      <!-- Ecran pagini -->
+      <section id="screen-pages" class="screen">
+        <div class="pages-header">
+          <button id="btn-back" class="btn-text">← Înapoi</button>
+          <h2>Pagini scanate</h2>
         </div>
-
-        <div class="screen-footer">
-          <p>Trage colțurile pentru a selecta documentul</p>
+        <div id="pages-list"></div>
+        <div class="bottom-bar">
+          <button id="btn-add" class="btn-text">+ Adaugă</button>
+          <button id="btn-download" class="btn-text primary">Descarcă PDF</button>
         </div>
-      </div>
-
-      <!-- ECRAN 3: Previzualizare & Export -->
-      <div id="screen-preview" class="screen">
-        <div class="screen-header">
-          <button id="btn-preview-back" class="header-btn">←</button>
-          <span>Previzualizare</span>
-          <button id="btn-save" class="header-btn primary">💾</button>
-        </div>
-
-        <div id="preview-container">
-          <canvas id="preview-canvas"></canvas>
-        </div>
-
-        <div id="preview-options">
-          <button class="option-btn active" data-filter="original">Original</button>
-          <button class="option-btn" data-filter="enhance">Îmbunătățit</button>
-          <button class="option-btn" data-filter="bw">Alb-Negru</button>
-          <button class="option-btn" data-filter="grayscale">Gri</button>
-        </div>
-      </div>
-
-      <!-- ECRAN 4: Galerie -->
-      <div id="screen-gallery" class="screen">
-        <div class="screen-header">
-          <button id="btn-gallery-back" class="header-btn">✕</button>
-          <span>Scanări (<span id="scan-count">0</span>)</span>
-          <button id="btn-download-all" class="header-btn">📥</button>
-        </div>
-
-        <div id="gallery-grid"></div>
-
-        <button id="btn-clear-all" class="danger-btn">Șterge Tot</button>
-      </div>
-
-      <!-- Loading -->
-      <div id="loading" class="hidden">
-        <div class="spinner"></div>
-        <span id="loading-text">Se încarcă...</span>
-      </div>
-
-      <!-- Toast -->
-      <div id="toast-container"></div>
+      </section>
     </div>
 
-    <script src="app.js"></script>
-    <script src="https://docs.opencv.org/4.9.0/opencv.js" onload="onOpenCvReady()"></script>
+    <script src="js/app.js" type="module"></script>
   </body>
 </html>
