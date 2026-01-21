@@ -77,10 +77,41 @@ class ScannerApp {
 
   capture() {
     const video = document.getElementById('preview');
+    const ghidaj = document.getElementById('ghidaj');
     const canvas = document.getElementById('preview-canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    // Dimensiunile video-ului real vs afișat
+    const videoRect = video.getBoundingClientRect();
+    const ghidajRect = ghidaj.getBoundingClientRect();
+
+    // Scala între video afișat și video real
+    const scaleX = video.videoWidth / videoRect.width;
+    const scaleY = video.videoHeight / videoRect.height;
+
+    // Poziția ghidajului relativ la video
+    const cropX = (ghidajRect.left - videoRect.left) * scaleX;
+    const cropY = (ghidajRect.top - videoRect.top) * scaleY;
+    const cropWidth = ghidajRect.width * scaleX;
+    const cropHeight = ghidajRect.height * scaleY;
+
+    // Canvas la dimensiunea cropului
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+
+    // Desenează doar porțiunea din ghidaj
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(
+      video,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight, // sursă (din video)
+      0,
+      0,
+      cropWidth,
+      cropHeight // destinație (pe canvas)
+    );
+
     this.showScreen('preview');
   }
 
