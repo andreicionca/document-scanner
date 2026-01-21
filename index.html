@@ -15,44 +15,77 @@
   </head>
   <body>
     <div id="app">
-      <!-- Ecran cameră -->
-      <section id="screen-camera" class="screen active">
-        <video id="preview" autoplay playsinline></video>
-        <div class="camera-overlay">
-          <div class="document-guide"></div>
-        </div>
-        <div class="bottom-bar">
-          <button id="btn-gallery" class="btn-icon">🖼️</button>
-          <button id="btn-capture" class="btn-capture"></button>
-          <button id="btn-pages" class="btn-icon">
-            <span id="page-count">0</span>
+      <!-- Ecran principal - selectare tip -->
+      <section id="screen-home" class="screen active">
+        <h1>Scanner Documente</h1>
+        <div class="doc-grid">
+          <button class="doc-type" data-type="buletin-nou">
+            <span class="doc-icon">🪪</span>
+            <span class="doc-label">Buletin nou</span>
           </button>
+          <button class="doc-type" data-type="buletin-vechi">
+            <span class="doc-icon">🪪</span>
+            <span class="doc-label">Buletin vechi</span>
+          </button>
+          <button class="doc-type" data-type="certificat-vechi">
+            <span class="doc-icon">📜</span>
+            <span class="doc-label">Certificat naștere vechi</span>
+          </button>
+          <button class="doc-type" data-type="certificat-nou">
+            <span class="doc-icon">📄</span>
+            <span class="doc-label">Certificat naștere nou</span>
+          </button>
+          <button class="doc-type" data-type="pasaport">
+            <span class="doc-icon">📕</span>
+            <span class="doc-label">Pașaport</span>
+          </button>
+          <button class="doc-type" data-type="a4">
+            <span class="doc-icon">📃</span>
+            <span class="doc-label">Document A4</span>
+          </button>
+        </div>
+
+        <div id="pages-indicator" class="hidden">
+          <span id="pages-count">0</span> pagini scanate
+          <button id="btn-finish">Finalizează PDF</button>
         </div>
       </section>
 
-      <!-- Ecran editare -->
-      <section id="screen-edit" class="screen">
-        <canvas id="edit-canvas"></canvas>
+      <!-- Ecran cameră -->
+      <section id="screen-camera" class="screen">
+        <button id="btn-back-home" class="btn-back">← Înapoi</button>
+        <video id="preview" autoplay playsinline></video>
+        <div class="ghidaj-container">
+          <div id="ghidaj" class="ghidaj"></div>
+          <span id="ghidaj-label" class="ghidaj-label"></span>
+        </div>
+        <div class="bottom-bar">
+          <button id="btn-capture" class="btn-capture"></button>
+        </div>
+      </section>
+
+      <!-- Ecran preview -->
+      <section id="screen-preview" class="screen">
+        <div class="preview-container">
+          <canvas id="preview-canvas"></canvas>
+        </div>
         <div class="bottom-bar">
           <button id="btn-retake" class="btn-text">Refă</button>
           <button id="btn-confirm" class="btn-text primary">Confirmă</button>
         </div>
       </section>
 
-      <!-- Ecran pagini -->
-      <section id="screen-pages" class="screen">
-        <div class="pages-header">
-          <button id="btn-back" class="btn-text">← Înapoi</button>
-          <h2>Pagini scanate</h2>
-        </div>
+      <!-- Ecran final -->
+      <section id="screen-final" class="screen">
+        <h2>Pagini scanate</h2>
         <div id="pages-list"></div>
         <div class="bottom-bar">
-          <button id="btn-add" class="btn-text">+ Adaugă</button>
+          <button id="btn-add-more" class="btn-text">+ Adaugă</button>
           <button id="btn-download" class="btn-text primary">Descarcă PDF</button>
         </div>
       </section>
     </div>
-
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
     <script src="js/app.js" type="module"></script>
   </body>
 </html>

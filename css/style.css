@@ -10,15 +10,14 @@ body {
   height: 100%;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #000;
+  background: #121212;
+  color: white;
 }
 
 #app {
   height: 100%;
-  position: relative;
 }
 
-/* Ecrane */
 .screen {
   position: absolute;
   inset: 0;
@@ -30,30 +29,158 @@ body {
   display: flex;
 }
 
-/* Cameră */
+.hidden {
+  display: none !important;
+}
+
+/* Ecran home */
+#screen-home {
+  padding: 20px;
+  padding-top: 60px;
+}
+
+#screen-home h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 500;
+}
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.doc-type {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.doc-type:active {
+  background: #2a2a2a;
+}
+
+.doc-icon {
+  font-size: 32px;
+}
+
+.doc-label {
+  font-size: 14px;
+  color: #ccc;
+  text-align: center;
+}
+
+#pages-indicator {
+  margin-top: auto;
+  padding: 16px;
+  background: #1e1e1e;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#pages-indicator.hidden {
+  display: none;
+}
+
+#btn-finish {
+  background: #007aff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Ecran cameră */
+#screen-camera {
+  background: #000;
+}
+
+.btn-back {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 #preview {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.camera-overlay {
+.ghidaj-container {
   position: absolute;
   inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
 }
 
-.document-guide {
-  position: absolute;
-  top: 10%;
-  left: 5%;
-  right: 5%;
-  bottom: 20%;
-  border: 2px dashed rgba(255, 255, 255, 0.5);
+.ghidaj {
+  border: 2px dashed rgba(255, 255, 255, 0.7);
   border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* Bara de jos */
+.ghidaj-label {
+  margin-top: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Ghidaje specifice */
+.ghidaj[data-type='buletin-nou'] {
+  width: 75%;
+  aspect-ratio: 1.585;
+}
+
+.ghidaj[data-type='buletin-vechi'] {
+  width: 75%;
+  aspect-ratio: 1.42;
+}
+
+.ghidaj[data-type='certificat-vechi'] {
+  width: 85%;
+  aspect-ratio: 1.41;
+}
+
+.ghidaj[data-type='certificat-nou'] {
+  height: 70%;
+  aspect-ratio: 0.707;
+}
+
+.ghidaj[data-type='pasaport'] {
+  width: 80%;
+  aspect-ratio: 1.41;
+}
+
+.ghidaj[data-type='a4'] {
+  height: 70%;
+  aspect-ratio: 0.707;
+}
+
+/* Bottom bar */
 .bottom-bar {
   position: absolute;
   bottom: 0;
@@ -61,12 +188,11 @@ body {
   right: 0;
   padding: 20px;
   display: flex;
-  justify-content: space-around;
-  align-items: center;
+  justify-content: center;
+  gap: 20px;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
 }
 
-/* Buton captură */
 .btn-capture {
   width: 70px;
   height: 70px;
@@ -74,13 +200,14 @@ body {
   border: 4px solid white;
   background: transparent;
   cursor: pointer;
-  position: relative;
 }
 
 .btn-capture::after {
   content: '';
-  position: absolute;
-  inset: 6px;
+  display: block;
+  margin: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
   background: white;
   border-radius: 50%;
   transition: transform 0.1s;
@@ -90,25 +217,8 @@ body {
   transform: scale(0.9);
 }
 
-/* Butoane icon */
-.btn-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-#page-count {
-  font-size: 14px;
-}
-
-/* Butoane text */
 .btn-text {
-  padding: 12px 24px;
+  padding: 14px 28px;
   border: none;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.2);
@@ -121,48 +231,64 @@ body {
   background: #007aff;
 }
 
-/* Ecran editare */
-#screen-edit {
-  background: #1a1a1a;
+/* Ecran preview */
+#screen-preview {
+  background: #121212;
 }
 
-#edit-canvas {
+.preview-container {
   flex: 1;
-  width: 100%;
-  object-fit: contain;
-}
-
-/* Ecran pagini */
-#screen-pages {
-  background: #1a1a1a;
-}
-
-.pages-header {
-  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  color: white;
+  justify-content: center;
+  padding: 20px;
+}
+
+#preview-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+}
+
+/* Ecran final */
+#screen-final {
+  background: #121212;
+  padding: 20px;
+  padding-top: 60px;
+}
+
+#screen-final h2 {
+  margin-bottom: 20px;
 }
 
 #pages-list {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
-#pages-list .page-thumb {
-  aspect-ratio: 3/4;
-  background: #333;
+.page-thumb {
+  aspect-ratio: 0.707;
+  background: #1e1e1e;
   border-radius: 8px;
   overflow: hidden;
+  position: relative;
 }
 
-#pages-list .page-thumb img {
+.page-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.page-number {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
 }
