@@ -15,76 +15,197 @@
   </head>
   <body>
     <div id="app">
-      <!-- Ecran principal - selectare tip -->
+      <!-- ==================== ECRAN HOME ==================== -->
       <section id="screen-home" class="screen active">
-        <h1>Scanner Documente</h1>
+        <header class="home-header">
+          <h1>Scanner Documente</h1>
+        </header>
+
         <div class="doc-grid">
           <button class="doc-type" data-type="buletin-nou">
-            <span class="doc-icon">🪪</span>
+            <div class="doc-icon-wrapper">
+              <img src="assets/icons/buletin-nou.png" alt="" class="doc-icon" />
+            </div>
             <span class="doc-label">Buletin nou</span>
           </button>
+
           <button class="doc-type" data-type="buletin-vechi">
-            <span class="doc-icon">🪪</span>
+            <div class="doc-icon-wrapper">
+              <img src="assets/icons/buletin-vechi.png" alt="" class="doc-icon" />
+            </div>
             <span class="doc-label">Buletin vechi</span>
           </button>
+
           <button class="doc-type" data-type="certificat-vechi">
-            <span class="doc-icon">📜</span>
+            <div class="doc-icon-wrapper">
+              <img src="assets/icons/certificat-vechi.png" alt="" class="doc-icon" />
+            </div>
             <span class="doc-label">Certificat naștere vechi</span>
           </button>
+
           <button class="doc-type" data-type="certificat-nou">
-            <span class="doc-icon">📄</span>
+            <div class="doc-icon-wrapper">
+              <img src="assets/icons/certificat-nou.png" alt="" class="doc-icon" />
+            </div>
             <span class="doc-label">Certificat naștere nou</span>
           </button>
+
           <button class="doc-type" data-type="pasaport">
-            <span class="doc-icon">📕</span>
+            <div class="doc-icon-wrapper">
+              <img src="assets/icons/pasaport.png" alt="" class="doc-icon" />
+            </div>
             <span class="doc-label">Pașaport</span>
           </button>
+
           <button class="doc-type" data-type="a4">
-            <span class="doc-icon">📃</span>
+            <div class="doc-icon-wrapper">
+              <img src="assets/icons/a4.png" alt="" class="doc-icon" />
+            </div>
             <span class="doc-label">Document A4</span>
           </button>
         </div>
 
-        <div id="pages-indicator" class="hidden">
-          <span id="pages-count">0</span> pagini scanate
-          <button id="btn-finish">Finalizează PDF</button>
-        </div>
+        <!-- Secțiune pagini scanate (vizibilă doar când există pagini) -->
+        <section id="scanned-section" class="scanned-section hidden">
+          <div class="scanned-header">
+            <h2>Pagini scanate (<span id="pages-count">0</span>)</h2>
+          </div>
+          <div id="pages-list" class="pages-list">
+            <!-- Thumbnail-uri generate din JS -->
+          </div>
+          <button id="btn-download" class="btn-download">Descarcă PDF</button>
+        </section>
       </section>
 
-      <!-- Ecran cameră -->
+      <!-- ==================== ECRAN CAMERĂ ==================== -->
       <section id="screen-camera" class="screen">
-        <button id="btn-back-home" class="btn-back">← Înapoi</button>
-        <video id="preview" autoplay playsinline></video>
+        <!-- Header cameră -->
+        <header class="camera-header">
+          <button id="btn-back-home" class="btn-icon-round" aria-label="Înapoi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <!-- Selector tip document -->
+          <div class="type-selector">
+            <button id="btn-type-selector" class="btn-type-selector">
+              <span id="current-type-label">Buletin nou</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            <!-- Dropdown -->
+            <div id="type-dropdown" class="type-dropdown hidden">
+              <button class="type-option" data-type="buletin-nou">Buletin nou</button>
+              <button class="type-option" data-type="buletin-vechi">Buletin vechi</button>
+              <button class="type-option" data-type="certificat-vechi">
+                Certificat naștere vechi
+              </button>
+              <button class="type-option" data-type="certificat-nou">Certificat naștere nou</button>
+              <button class="type-option" data-type="pasaport">Pașaport</button>
+              <button class="type-option" data-type="a4">Document A4</button>
+            </div>
+          </div>
+
+          <button id="btn-flash" class="btn-icon-round" aria-label="Lanternă">
+            <svg
+              id="flash-icon-off"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+            <svg id="flash-icon-on" class="hidden" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          </button>
+        </header>
+
+        <!-- Video preview -->
+        <video id="camera-preview" autoplay playsinline></video>
+
+        <!-- Ghidaj overlay -->
         <div class="ghidaj-container">
-          <div id="ghidaj" class="ghidaj"></div>
-          <span id="ghidaj-label" class="ghidaj-label"></span>
+          <div id="ghidaj" class="ghidaj" data-type="buletin-nou"></div>
         </div>
-        <div class="bottom-bar">
-          <button id="btn-capture" class="btn-capture"></button>
+
+        <!-- Tips -->
+        <div id="camera-tips" class="camera-tips">
+          <p class="tip active" data-tip="1">📱 Ține telefonul paralel cu documentul</p>
+          <p class="tip" data-tip="2">🔲 Încadrează documentul în chenar</p>
+          <p class="tip" data-tip="3">💡 Asigură-te că ai lumină suficientă</p>
+        </div>
+
+        <!-- Buton captură -->
+        <div class="camera-bottom">
+          <button id="btn-capture" class="btn-capture" aria-label="Fotografiază">
+            <span class="capture-ring"></span>
+            <span class="capture-center"></span>
+          </button>
         </div>
       </section>
 
-      <!-- Ecran preview -->
-      <section id="screen-preview" class="screen">
-        <div class="preview-container">
-          <canvas id="preview-canvas"></canvas>
-        </div>
-        <div class="bottom-bar">
-          <button id="btn-retake" class="btn-text">Refă</button>
-          <button id="btn-confirm" class="btn-text primary">Confirmă</button>
-        </div>
-      </section>
+      <!-- ==================== ECRAN EDITARE ==================== -->
+      <section id="screen-edit" class="screen">
+        <header class="edit-header">
+          <button id="btn-back-camera" class="btn-icon-round" aria-label="Înapoi la cameră">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h2>Ajustează imaginea</h2>
+          <div class="spacer"></div>
+        </header>
 
-      <!-- Ecran final -->
-      <section id="screen-final" class="screen">
-        <h2>Pagini scanate</h2>
-        <div id="pages-list"></div>
-        <div class="bottom-bar">
-          <button id="btn-add-more" class="btn-text">+ Adaugă</button>
-          <button id="btn-download" class="btn-text primary">Descarcă PDF</button>
+        <!-- Container pentru imagine și puncte de decupare -->
+        <div class="crop-container">
+          <canvas id="edit-canvas"></canvas>
+          <!-- Punctele de decupare -->
+          <div class="crop-overlay">
+            <div class="crop-corner" data-corner="tl"></div>
+            <div class="crop-corner" data-corner="tr"></div>
+            <div class="crop-corner" data-corner="bl"></div>
+            <div class="crop-corner" data-corner="br"></div>
+            <svg class="crop-lines">
+              <polygon id="crop-polygon" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Filtre -->
+        <div class="filters-section">
+          <h3>Filtru</h3>
+          <div class="filters-list">
+            <button class="filter-btn active" data-filter="original">
+              <div class="filter-preview original"></div>
+              <span>Original</span>
+            </button>
+            <button class="filter-btn" data-filter="grayscale">
+              <div class="filter-preview grayscale"></div>
+              <span>Alb-negru</span>
+            </button>
+            <button class="filter-btn" data-filter="high-contrast">
+              <div class="filter-preview high-contrast"></div>
+              <span>Contrast</span>
+            </button>
+            <button class="filter-btn" data-filter="sharpen">
+              <div class="filter-preview sharpen"></div>
+              <span>Claritate</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Acțiuni -->
+        <div class="edit-actions">
+          <button id="btn-retake" class="btn-secondary">Refă poza</button>
+          <button id="btn-confirm" class="btn-primary">Confirmă</button>
         </div>
       </section>
     </div>
+
     <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
     <script src="js/app.js" type="module"></script>
   </body>

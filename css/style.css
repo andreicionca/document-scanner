@@ -1,4 +1,6 @@
 /* css/style.css */
+
+/* ==================== RESET & BASE ==================== */
 * {
   margin: 0;
   padding: 0;
@@ -10,14 +12,18 @@ body {
   height: 100%;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #121212;
-  color: white;
+  background: #0a0a0a;
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 #app {
   height: 100%;
+  position: relative;
 }
 
+/* ==================== SCREENS ==================== */
 .screen {
   position: absolute;
   inset: 0;
@@ -33,248 +39,113 @@ body {
   display: none !important;
 }
 
-/* Ecran home */
+/* ==================== ECRAN HOME ==================== */
 #screen-home {
   padding: 20px;
-  padding-top: 60px;
+  overflow-y: auto;
 }
 
-#screen-home h1 {
+.home-header {
   text-align: center;
-  margin-bottom: 30px;
-  font-weight: 500;
+  padding: 20px 0 30px;
 }
 
+.home-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Grid tipuri documente */
 .doc-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  margin-bottom: 30px;
 }
 
 .doc-type {
-  background: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: 12px;
-  padding: 20px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  padding: 20px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .doc-type:active {
-  background: #2a2a2a;
+  background: #252525;
+  transform: scale(0.98);
+}
+
+.doc-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .doc-icon {
-  font-size: 32px;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .doc-label {
   font-size: 14px;
   color: #ccc;
   text-align: center;
+  line-height: 1.3;
 }
 
-#pages-indicator {
+/* Secțiune pagini scanate */
+.scanned-section {
   margin-top: auto;
-  padding: 16px;
-  background: #1e1e1e;
-  border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#pages-indicator.hidden {
-  display: none;
-}
-
-#btn-finish {
-  background: #007aff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-}
-
-/* Ecran cameră */
-#screen-camera {
-  background: #000;
-}
-
-.btn-back {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-#preview {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.ghidaj-container {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.ghidaj {
-  border: 2px dashed rgba(255, 255, 255, 0.7);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.ghidaj-label {
-  margin-top: 12px;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-/* Ghidaje specifice */
-.ghidaj[data-type='buletin-nou'] {
-  width: 75%;
-  aspect-ratio: 1.585;
-}
-
-.ghidaj[data-type='buletin-vechi'] {
-  width: 75%;
-  aspect-ratio: 1.42;
-}
-
-.ghidaj[data-type='certificat-vechi'] {
-  width: 85%;
-  aspect-ratio: 1.41;
-}
-
-.ghidaj[data-type='certificat-nou'] {
-  height: 70%;
-  aspect-ratio: 0.707;
-}
-
-.ghidaj[data-type='pasaport'] {
-  width: 80%;
-  aspect-ratio: 1.41;
-}
-
-.ghidaj[data-type='a4'] {
-  height: 70%;
-  aspect-ratio: 0.707;
-}
-
-/* Bottom bar */
-.bottom-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  background: #141414;
+  border-radius: 20px 20px 0 0;
   padding: 20px;
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: -20px;
+}
+
+.scanned-header {
+  margin-bottom: 16px;
+}
+
+.scanned-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Lista pagini - thumbnail-uri */
+.pages-list {
   display: flex;
-  justify-content: center;
-  gap: 20px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-}
-
-.btn-capture {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  border: 4px solid white;
-  background: transparent;
-  cursor: pointer;
-}
-
-.btn-capture::after {
-  content: '';
-  display: block;
-  margin: 6px;
-  width: calc(100% - 12px);
-  height: calc(100% - 12px);
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.1s;
-}
-
-.btn-capture:active::after {
-  transform: scale(0.9);
-}
-
-.btn-text {
-  padding: 14px 28px;
-  border: none;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.btn-text.primary {
-  background: #007aff;
-}
-
-/* Ecran preview */
-#screen-preview {
-  background: #121212;
-}
-
-.preview-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-#preview-canvas {
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: 8px;
-}
-
-/* Ecran final */
-#screen-final {
-  background: #121212;
-  padding: 20px;
-  padding-top: 60px;
-}
-
-#screen-final h2 {
-  margin-bottom: 20px;
-}
-
-#pages-list {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  scroll-snap-type: x mandatory;
 }
 
 .page-thumb {
-  aspect-ratio: 0.707;
-  background: #1e1e1e;
+  flex-shrink: 0;
+  width: 80px;
+  background: #2a2a2a;
   border-radius: 8px;
   overflow: hidden;
   position: relative;
+  scroll-snap-align: start;
+  cursor: grab;
+}
+
+.page-thumb.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
 }
 
 .page-thumb img {
@@ -283,12 +154,507 @@ body {
   object-fit: cover;
 }
 
-.page-number {
+.page-thumb-number {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 4px;
+  left: 4px;
   background: rgba(0, 0, 0, 0.7);
-  padding: 4px 8px;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
   border-radius: 4px;
+}
+
+.page-thumb-delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 59, 48, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-download {
+  width: 100%;
+  padding: 16px;
+  background: #007aff;
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-download:active {
+  background: #0056cc;
+}
+
+/* ==================== ECRAN CAMERĂ ==================== */
+#screen-camera {
+  background: #000;
+}
+
+/* Header cameră */
+.camera-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+}
+
+/* Butoane rotunde (înapoi, lanternă) */
+.btn-icon-round {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.btn-icon-round:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-icon-round svg {
+  width: 22px;
+  height: 22px;
+}
+
+.btn-icon-round.flash-on {
+  background: #ffd60a;
+  color: #000;
+}
+
+/* Selector tip document */
+.type-selector {
+  position: relative;
+}
+
+.btn-type-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-type-selector svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s;
+}
+
+.btn-type-selector.open svg {
+  transform: rotate(180deg);
+}
+
+/* Dropdown tipuri */
+.type-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.type-option {
+  width: 100%;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #2a2a2a;
+  color: #fff;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.type-option:last-child {
+  border-bottom: none;
+}
+
+.type-option:active {
+  background: #2a2a2a;
+}
+
+.type-option.selected {
+  color: #007aff;
+}
+
+/* Video preview */
+#camera-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ghidaj container */
+.ghidaj-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ghidaj {
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.3s ease;
+}
+
+/* Dimensiuni ghidaje specifice */
+.ghidaj[data-type='buletin-nou'] {
+  width: 80%;
+  max-width: 320px;
+  aspect-ratio: 1.585;
+}
+
+.ghidaj[data-type='buletin-vechi'] {
+  width: 80%;
+  max-width: 320px;
+  aspect-ratio: 1.42;
+}
+
+.ghidaj[data-type='certificat-vechi'] {
+  width: 85%;
+  max-width: 400px;
+  aspect-ratio: 1.41;
+}
+
+.ghidaj[data-type='certificat-nou'] {
+  height: 65%;
+  max-height: 450px;
+  aspect-ratio: 0.707;
+}
+
+.ghidaj[data-type='pasaport'] {
+  width: 85%;
+  max-width: 380px;
+  aspect-ratio: 1.41;
+}
+
+.ghidaj[data-type='a4'] {
+  height: 65%;
+  max-height: 450px;
+  aspect-ratio: 0.707;
+}
+
+/* Tips cameră */
+.camera-tips {
+  position: absolute;
+  bottom: 140px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.tip {
+  display: none;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px 20px;
+  border-radius: 20px;
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.tip.active {
+  display: block;
+  animation: fadeInOut 4s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+}
+
+/* Buton captură */
+.camera-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.btn-capture {
+  width: 72px;
+  height: 72px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.capture-ring {
+  position: absolute;
+  inset: 0;
+  border: 4px solid #fff;
+  border-radius: 50%;
+}
+
+.capture-center {
+  width: 56px;
+  height: 56px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.1s;
+}
+
+.btn-capture:active .capture-center {
+  transform: scale(0.9);
+}
+
+/* ==================== ECRAN EDITARE ==================== */
+#screen-edit {
+  background: #0a0a0a;
+}
+
+.edit-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+
+.edit-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.spacer {
+  width: 44px;
+}
+
+/* Container decupare */
+.crop-container {
+  flex: 1;
+  position: relative;
+  margin: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#edit-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+}
+
+/* Overlay decupare */
+.crop-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.crop-corner {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: #007aff;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  z-index: 10;
+}
+
+.crop-corner:active {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.crop-corner[data-corner='tl'] {
+  top: 10%;
+  left: 10%;
+}
+.crop-corner[data-corner='tr'] {
+  top: 10%;
+  right: 10%;
+  left: auto;
+  transform: translate(50%, -50%);
+}
+.crop-corner[data-corner='bl'] {
+  bottom: 10%;
+  top: auto;
+  left: 10%;
+  transform: translate(-50%, 50%);
+}
+.crop-corner[data-corner='br'] {
+  bottom: 10%;
+  top: auto;
+  right: 10%;
+  left: auto;
+  transform: translate(50%, 50%);
+}
+
+.crop-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#crop-polygon {
+  fill: rgba(0, 122, 255, 0.1);
+  stroke: #007aff;
+  stroke-width: 2;
+}
+
+/* Filtre */
+.filters-section {
+  padding: 16px;
+}
+
+.filters-section h3 {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.filters-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.filter-btn {
+  flex-shrink: 0;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.2s;
+}
+
+.filter-btn.active {
+  border-color: #007aff;
+}
+
+.filter-preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: #333;
+}
+
+.filter-preview.grayscale {
+  filter: grayscale(100%);
+}
+
+.filter-preview.high-contrast {
+  filter: contrast(150%);
+}
+
+.filter-preview.sharpen {
+  filter: contrast(110%) brightness(105%);
+}
+
+.filter-btn span {
   font-size: 12px;
+  color: #888;
+}
+
+.filter-btn.active span {
+  color: #007aff;
+}
+
+/* Acțiuni editare */
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  padding-bottom: 32px;
+}
+
+.btn-secondary,
+.btn-primary {
+  flex: 1;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.btn-secondary:active {
+  background: #333;
+}
+
+.btn-primary {
+  background: #007aff;
+  color: #fff;
+}
+
+.btn-primary:active {
+  background: #0056cc;
 }
