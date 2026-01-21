@@ -27,10 +27,10 @@ class ScannerApp {
     this.currentTipIndex = 0;
 
     this.cropCorners = {
-      tl: { x: 2, y: 2 },
-      tr: { x: 98, y: 2 },
-      bl: { x: 2, y: 98 },
-      br: { x: 98, y: 98 },
+      tl: { x: 0, y: 0 },
+      tr: { x: 100, y: 0 },
+      bl: { x: 0, y: 100 },
+      br: { x: 100, y: 100 },
     };
 
     this.activeDrag = null;
