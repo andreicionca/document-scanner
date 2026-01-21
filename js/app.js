@@ -43,7 +43,6 @@ class ScannerApp {
     this.updatePagesUI();
   }
 
-  // ==================== EVENT BINDING ====================
   bindEvents() {
     // Home - selectare tip document
     document.querySelectorAll('.doc-type').forEach((btn) => {
@@ -52,54 +51,48 @@ class ScannerApp {
 
     // Home - previzualizare și descarcă
     document.getElementById('btn-preview-pdf').onclick = () => this.showPreviewPDF();
-    document.getElementById('btn-download').onclick = () => this.showFilenameModal();
+    document.getElementById('btn-download').onclick = () => this.showDownloadModal();
 
-    // Cameră - înapoi
+    // Cameră
     document.getElementById('btn-back-home').onclick = () => this.goHome();
-
-    // Cameră - selector tip
     document.getElementById('btn-type-selector').onclick = () => this.toggleTypeDropdown();
     document.querySelectorAll('.type-option').forEach((btn) => {
       btn.onclick = () => this.changeType(btn.dataset.type);
     });
-
-    // Cameră - lanternă
     document.getElementById('btn-flash').onclick = () => this.toggleFlash();
-
-    // Cameră - captură
     document.getElementById('btn-capture').onclick = () => this.capture();
 
-    // Editare - înapoi la cameră
+    // Editare
     document.getElementById('btn-back-camera').onclick = () => this.showScreen('camera');
-
-    // Editare - filtre
     document.querySelectorAll('.filter-btn').forEach((btn) => {
       btn.onclick = () => this.applyFilter(btn.dataset.filter);
     });
-
-    // Editare - refă / confirmă
     document.getElementById('btn-retake').onclick = () => this.showScreen('camera');
     document.getElementById('btn-confirm').onclick = () => this.confirmPage();
 
-    // Modal filename
-    document.getElementById('btn-modal-cancel').onclick = () => this.hideFilenameModal();
-    document.getElementById('btn-modal-confirm').onclick = () => this.downloadWithFilename();
+    // Confirmare (ecran nou)
+    document.getElementById('btn-add-another').onclick = () => this.addAnotherPage();
+    document.getElementById('btn-finish-scanning').onclick = () => this.goHome();
+
+    // Modal descărcare
+    document.getElementById('btn-modal-cancel').onclick = () => this.hideDownloadModal();
+    document.getElementById('btn-modal-confirm').onclick = () => this.downloadWithOptions();
 
     // Preview PDF
     document.getElementById('btn-back-from-preview').onclick = () => this.showScreen('home');
-    document.getElementById('btn-download-from-preview').onclick = () => this.showFilenameModal();
+    document.getElementById('btn-download-from-preview').onclick = () => this.showDownloadModal();
 
-    // Crop corners - drag events
+    // Crop corners
     this.initCropDrag();
 
-    // Închide dropdown când apeși în altă parte
+    // Închide dropdown
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.type-selector')) {
         this.closeTypeDropdown();
       }
     });
 
-    // Recalculează pozițiile când se redimensionează
+    // Resize
     window.addEventListener('resize', () => {
       if (document.getElementById('screen-edit').classList.contains('active')) {
         this.updateCropUI();
@@ -125,12 +118,15 @@ class ScannerApp {
         });
       });
     }
+
+    if (name === 'home') {
+      this.updatePagesUI();
+    }
   }
 
   goHome() {
     this.stopCamera();
     this.showScreen('home');
-    this.updatePagesUI();
   }
 
   // ==================== CAMERĂ ====================
@@ -177,16 +173,13 @@ class ScannerApp {
   }
 
   updateGhidaj() {
-    const ghidaj = document.getElementById('ghidaj');
-    ghidaj.setAttribute('data-type', this.currentType);
+    document.getElementById('ghidaj').setAttribute('data-type', this.currentType);
   }
 
   // ==================== SELECTOR TIP ====================
   toggleTypeDropdown() {
-    const dropdown = document.getElementById('type-dropdown');
-    const btn = document.getElementById('btn-type-selector');
-    dropdown.classList.toggle('hidden');
-    btn.classList.toggle('open');
+    document.getElementById('type-dropdown').classList.toggle('hidden');
+    document.getElementById('btn-type-selector').classList.toggle('open');
   }
 
   closeTypeDropdown() {
@@ -216,9 +209,7 @@ class ScannerApp {
     this.flashOn = !this.flashOn;
 
     try {
-      await track.applyConstraints({
-        advanced: [{ torch: this.flashOn }],
-      });
+      await track.applyConstraints({ advanced: [{ torch: this.flashOn }] });
       this.updateFlashUI();
     } catch (err) {
       console.log('Lanterna nu e disponibilă:', err);
@@ -227,19 +218,15 @@ class ScannerApp {
 
   updateFlashUI() {
     const btn = document.getElementById('btn-flash');
-    const iconOff = document.getElementById('flash-icon-off');
-    const iconOn = document.getElementById('flash-icon-on');
-
     btn.classList.toggle('flash-on', this.flashOn);
-    iconOff.classList.toggle('hidden', this.flashOn);
-    iconOn.classList.toggle('hidden', !this.flashOn);
+    document.getElementById('flash-icon-off').classList.toggle('hidden', this.flashOn);
+    document.getElementById('flash-icon-on').classList.toggle('hidden', !this.flashOn);
   }
 
   // ==================== TIPS ====================
   startTips() {
     this.currentTipIndex = 0;
     this.showCurrentTip();
-
     this.tipInterval = setInterval(() => {
       this.currentTipIndex = (this.currentTipIndex + 1) % TIPS.length;
       this.showCurrentTip();
@@ -254,8 +241,8 @@ class ScannerApp {
   }
 
   showCurrentTip() {
-    const container = document.getElementById('camera-tips');
-    container.innerHTML = `<p class="tip active">${TIPS[this.currentTipIndex]}</p>`;
+    document.getElementById('camera-tips').innerHTML =
+      `<p class="tip active">${TIPS[this.currentTipIndex]}</p>`;
   }
 
   // ==================== CAPTURĂ ====================
@@ -289,7 +276,7 @@ class ScannerApp {
     this.showScreen('edit');
   }
 
-  // ==================== CROP / DECUPARE ====================
+  // ==================== CROP ====================
   resetCropCorners() {
     this.cropCorners = {
       tl: { x: 2, y: 2 },
@@ -300,9 +287,7 @@ class ScannerApp {
   }
 
   initCropDrag() {
-    const corners = document.querySelectorAll('.crop-corner');
-
-    corners.forEach((corner) => {
+    document.querySelectorAll('.crop-corner').forEach((corner) => {
       corner.addEventListener('touchstart', (e) => this.startDrag(e, corner.dataset.corner), {
         passive: false,
       });
@@ -318,11 +303,8 @@ class ScannerApp {
   startDrag(e, cornerKey) {
     e.preventDefault();
     this.activeDrag = cornerKey;
-
-    const canvas = document.getElementById('edit-canvas');
-    const container = document.querySelector('.crop-container');
-    this.canvasRect = canvas.getBoundingClientRect();
-    this.containerRect = container.getBoundingClientRect();
+    this.canvasRect = document.getElementById('edit-canvas').getBoundingClientRect();
+    this.containerRect = document.querySelector('.crop-container').getBoundingClientRect();
   }
 
   onDrag(e) {
@@ -349,7 +331,6 @@ class ScannerApp {
   updateCropUI() {
     const canvas = document.getElementById('edit-canvas');
     const container = document.querySelector('.crop-container');
-
     if (!canvas || !container) return;
 
     const canvasRect = canvas.getBoundingClientRect();
@@ -363,38 +344,28 @@ class ScannerApp {
       if (!corner) return;
 
       const pos = this.cropCorners[key];
-      const left = offsetX + (pos.x / 100) * canvasRect.width;
-      const top = offsetY + (pos.y / 100) * canvasRect.height;
-
-      corner.style.left = `${left}px`;
-      corner.style.top = `${top}px`;
+      corner.style.left = `${offsetX + (pos.x / 100) * canvasRect.width}px`;
+      corner.style.top = `${offsetY + (pos.y / 100) * canvasRect.height}px`;
       corner.style.transform = 'translate(-50%, -50%)';
     });
-
     const polygon = document.getElementById('crop-polygon');
     if (!polygon) return;
 
     const points = ['tl', 'tr', 'br', 'bl']
       .map((key) => {
         const pos = this.cropCorners[key];
-        const x = offsetX + (pos.x / 100) * canvasRect.width;
-        const y = offsetY + (pos.y / 100) * canvasRect.height;
-        return `${x},${y}`;
+        return `${offsetX + (pos.x / 100) * canvasRect.width},${offsetY + (pos.y / 100) * canvasRect.height}`;
       })
       .join(' ');
 
     polygon.setAttribute('points', points);
   }
-
   // ==================== FILTRE ====================
   applyFilter(filter) {
     this.currentFilter = filter;
     this.updateFilterUI();
-
-    const canvas = document.getElementById('edit-canvas');
-    canvas.style.filter = this.getFilterCSS(filter);
+    document.getElementById('edit-canvas').style.filter = this.getFilterCSS(filter);
   }
-
   getFilterCSS(filter) {
     switch (filter) {
       case 'grayscale':
@@ -407,30 +378,24 @@ class ScannerApp {
         return 'none';
     }
   }
-
   updateFilterUI() {
     document.querySelectorAll('.filter-btn').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.filter === this.currentFilter);
     });
   }
-
   updateFilterPreviews() {
-    const canvas = document.getElementById('edit-canvas');
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.3);
-
+    const dataUrl = document.getElementById('edit-canvas').toDataURL('image/jpeg', 0.3);
     document.querySelectorAll('.filter-preview').forEach((preview) => {
       preview.style.backgroundImage = `url(${dataUrl})`;
       preview.style.backgroundSize = 'cover';
       preview.style.backgroundPosition = 'center';
     });
   }
-
   // ==================== CONFIRMARE PAGINĂ ====================
   confirmPage() {
     const sourceCanvas = document.getElementById('edit-canvas');
     const finalCanvas = document.createElement('canvas');
     const finalCtx = finalCanvas.getContext('2d');
-
     const corners = this.cropCorners;
     const minX = (Math.min(corners.tl.x, corners.bl.x) / 100) * sourceCanvas.width;
     const maxX = (Math.max(corners.tr.x, corners.br.x) / 100) * sourceCanvas.width;
@@ -456,22 +421,28 @@ class ScannerApp {
       cropHeight
     );
 
+    const imageData = finalCanvas.toDataURL('image/jpeg', 0.9);
+
     this.pages.push({
-      data: finalCanvas.toDataURL('image/jpeg', 0.9),
+      data: imageData,
       type: this.currentType,
       width: cropWidth,
       height: cropHeight,
     });
 
-    this.goHome();
+    // Arată ecranul de confirmare cu imaginea
+    document.getElementById('confirm-image').src = imageData;
+    this.showScreen('confirm');
   }
-
+  addAnotherPage() {
+    // Revine la cameră pentru altă poză
+    this.showScreen('camera');
+  }
   // ==================== PAGINI UI ====================
   updatePagesUI() {
     const section = document.getElementById('scanned-section');
     const list = document.getElementById('pages-list');
     const count = document.getElementById('pages-count');
-
     if (this.pages.length === 0) {
       section.classList.add('hidden');
       return;
@@ -483,12 +454,12 @@ class ScannerApp {
     list.innerHTML = this.pages
       .map(
         (page, i) => `
-      <div class="page-thumb" draggable="true" data-index="${i}">
-        <img src="${page.data}" alt="Pagina ${i + 1}">
-        <span class="page-thumb-number">${i + 1}</span>
-        <button class="page-thumb-delete" data-index="${i}">×</button>
-      </div>
-    `
+  <div class="page-thumb" draggable="true" data-index="${i}">
+    <img src="${page.data}" alt="Pagina ${i + 1}">
+    <span class="page-thumb-number">${i + 1}</span>
+    <button class="page-thumb-delete" data-index="${i}">×</button>
+  </div>
+`
       )
       .join('');
 
@@ -501,22 +472,16 @@ class ScannerApp {
 
     this.initPagesDragDrop();
   }
-
   deletePage(index) {
     this.pages.splice(index, 1);
     this.updatePagesUI();
   }
-
   initPagesDragDrop() {
     const list = document.getElementById('pages-list');
     const thumbs = list.querySelectorAll('.page-thumb');
-
-    let draggedItem = null;
     let draggedIndex = null;
-
     thumbs.forEach((thumb) => {
       thumb.addEventListener('dragstart', (e) => {
-        draggedItem = thumb;
         draggedIndex = parseInt(thumb.dataset.index);
         thumb.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
@@ -524,19 +489,14 @@ class ScannerApp {
 
       thumb.addEventListener('dragend', () => {
         thumb.classList.remove('dragging');
-        draggedItem = null;
         draggedIndex = null;
       });
 
-      thumb.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      });
+      thumb.addEventListener('dragover', (e) => e.preventDefault());
 
       thumb.addEventListener('drop', (e) => {
         e.preventDefault();
         const dropIndex = parseInt(thumb.dataset.index);
-
         if (draggedIndex !== null && draggedIndex !== dropIndex) {
           const [movedPage] = this.pages.splice(draggedIndex, 1);
           this.pages.splice(dropIndex, 0, movedPage);
@@ -547,33 +507,24 @@ class ScannerApp {
 
     this.initTouchDragDrop();
   }
-
   initTouchDragDrop() {
     const list = document.getElementById('pages-list');
     let touchedItem = null;
     let initialIndex = null;
-
     list.addEventListener('touchstart', (e) => {
       const thumb = e.target.closest('.page-thumb');
       if (!thumb || e.target.closest('.page-thumb-delete')) return;
-
       touchedItem = thumb;
       initialIndex = parseInt(thumb.dataset.index);
-
-      setTimeout(() => {
-        if (touchedItem) {
-          touchedItem.classList.add('dragging');
-        }
-      }, 200);
+      setTimeout(() => touchedItem?.classList.add('dragging'), 200);
     });
 
     list.addEventListener('touchmove', (e) => {
       if (!touchedItem) return;
-
       const touch = e.touches[0];
-      const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-      const thumbBelow = elemBelow?.closest('.page-thumb');
-
+      const thumbBelow = document
+        .elementFromPoint(touch.clientX, touch.clientY)
+        ?.closest('.page-thumb');
       if (thumbBelow && thumbBelow !== touchedItem) {
         const belowIndex = parseInt(thumbBelow.dataset.index);
         const [movedPage] = this.pages.splice(initialIndex, 1);
@@ -584,83 +535,65 @@ class ScannerApp {
     });
 
     list.addEventListener('touchend', () => {
-      if (touchedItem) {
-        touchedItem.classList.remove('dragging');
-      }
+      touchedItem?.classList.remove('dragging');
       touchedItem = null;
       initialIndex = null;
     });
   }
-
   // ==================== PREVIEW PDF ====================
   showPreviewPDF() {
     if (this.pages.length === 0) {
       alert('Adaugă cel puțin o pagină');
       return;
     }
-
-    const container = document.getElementById('preview-pdf-container');
-    container.innerHTML = this.pages
+    document.getElementById('preview-pdf-container').innerHTML = this.pages
       .map(
         (page, i) => `
-      <div class="preview-pdf-page">
-        <img src="${page.data}" alt="Pagina ${i + 1}">
-        <span class="preview-pdf-page-number">Pagina ${i + 1} din ${this.pages.length}</span>
-      </div>
-    `
+  <div class="preview-pdf-page">
+    <img src="${page.data}" alt="Pagina ${i + 1}">
+    <span class="preview-pdf-page-number">Pagina ${i + 1} din ${this.pages.length}</span>
+  </div>
+`
       )
       .join('');
 
     this.showScreen('preview-pdf');
   }
-
-  // ==================== MODAL FILENAME ====================
-  showFilenameModal() {
+  // ==================== MODAL DESCĂRCARE ====================
+  showDownloadModal() {
     if (this.pages.length === 0) {
       alert('Adaugă cel puțin o pagină');
       return;
     }
-
-    const modal = document.getElementById('modal-filename');
     const input = document.getElementById('input-filename');
+    const today = new Date().toISOString().split('T')[0];
+    input.value = `scanare-${today}`;
 
-    const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
-    input.value = `scanare-${dateStr}`;
-
-    modal.classList.remove('hidden');
+    document.getElementById('modal-download').classList.remove('hidden');
     input.focus();
     input.select();
   }
-
-  hideFilenameModal() {
-    document.getElementById('modal-filename').classList.add('hidden');
+  hideDownloadModal() {
+    document.getElementById('modal-download').classList.add('hidden');
   }
-
-  downloadWithFilename() {
-    const input = document.getElementById('input-filename');
-    let filename = input.value.trim();
-
-    if (!filename) {
-      filename = 'documente-scanate';
-    }
-
+  downloadWithOptions() {
+    const format = document.querySelector('input[name="format"]:checked').value;
+    let filename = document.getElementById('input-filename').value.trim();
+    if (!filename) filename = 'documente-scanate';
     filename = filename.replace(/[^a-zA-Z0-9-_\s]/g, '').replace(/\s+/g, '-');
 
-    this.hideFilenameModal();
-    this.downloadPDF(filename);
-  }
+    this.hideDownloadModal();
 
-  // ==================== DESCARCĂ PDF ====================
-  async downloadPDF(filename = 'documente-scanate') {
-    if (this.pages.length === 0) {
-      alert('Adaugă cel puțin o pagină');
-      return;
+    if (format === 'pdf') {
+      this.downloadPDF(filename);
+    } else {
+      this.downloadImages(filename);
     }
-
+  }
+  // ==================== DESCARCĂ PDF ====================
+  async downloadPDF(filename) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
-
     for (let i = 0; i < this.pages.length; i++) {
       if (i > 0) pdf.addPage();
 
@@ -689,8 +622,16 @@ class ScannerApp {
 
     pdf.save(`${filename}.pdf`);
   }
+  // ==================== DESCARCĂ IMAGINI ====================
+  downloadImages(filename) {
+    this.pages.forEach((page, i) => {
+      const link = document.createElement('a');
+      link.href = page.data;
+      link.download = `${filename}-${i + 1}.jpg`;
+      link.click();
+    });
+  }
 }
-
 // Pornire aplicație
 const app = new ScannerApp();
 app.init();

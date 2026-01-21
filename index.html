@@ -65,21 +65,46 @@
           </button>
         </div>
 
-        <!-- Secțiune pagini scanate (vizibilă doar când există pagini) -->
+        <!-- Secțiune pagini scanate -->
         <section id="scanned-section" class="scanned-section hidden">
           <div class="scanned-header">
             <h2>Pagini scanate (<span id="pages-count">0</span>)</h2>
           </div>
-          <div id="pages-list" class="pages-list">
-            <!-- Thumbnail-uri generate din JS -->
+          <div id="pages-list" class="pages-list"></div>
+          <div class="scanned-actions">
+            <button id="btn-preview-pdf" class="btn-preview-pdf">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Previzualizare
+            </button>
+            <button id="btn-download" class="btn-download">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+              </svg>
+              Descarcă
+            </button>
           </div>
-          <button id="btn-download" class="btn-download">Descarcă PDF</button>
         </section>
       </section>
 
       <!-- ==================== ECRAN CAMERĂ ==================== -->
       <section id="screen-camera" class="screen">
-        <!-- Header cameră -->
         <header class="camera-header">
           <button id="btn-back-home" class="btn-icon-round" aria-label="Înapoi">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -87,7 +112,6 @@
             </svg>
           </button>
 
-          <!-- Selector tip document -->
           <div class="type-selector">
             <button id="btn-type-selector" class="btn-type-selector">
               <span id="current-type-label">Buletin nou</span>
@@ -95,7 +119,6 @@
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
-            <!-- Dropdown -->
             <div id="type-dropdown" class="type-dropdown hidden">
               <button class="type-option" data-type="buletin-nou">Buletin nou</button>
               <button class="type-option" data-type="buletin-vechi">Buletin vechi</button>
@@ -124,22 +147,16 @@
           </button>
         </header>
 
-        <!-- Video preview -->
         <video id="camera-preview" autoplay playsinline></video>
 
-        <!-- Ghidaj overlay -->
         <div class="ghidaj-container">
           <div id="ghidaj" class="ghidaj" data-type="buletin-nou"></div>
         </div>
 
-        <!-- Tips -->
         <div id="camera-tips" class="camera-tips">
-          <p class="tip active" data-tip="1">📱 Ține telefonul deasupra documentului</p>
-          <p class="tip" data-tip="2">🔲 Încadrează documentul în chenar</p>
-          <p class="tip" data-tip="3">💡 Asigură-te că ai lumină suficientă</p>
+          <p class="tip active">📱 Ține telefonul deasupra documentului</p>
         </div>
 
-        <!-- Buton captură -->
         <div class="camera-bottom">
           <button id="btn-capture" class="btn-capture" aria-label="Fotografiază">
             <span class="capture-ring"></span>
@@ -149,7 +166,6 @@
       </section>
 
       <!-- ==================== ECRAN EDITARE ==================== -->
-      <!-- În screen-edit, adaugă instrucțiunile după edit-header -->
       <section id="screen-edit" class="screen">
         <header class="edit-header">
           <button id="btn-back-camera" class="btn-icon-round" aria-label="Înapoi la cameră">
@@ -161,16 +177,14 @@
           <div class="spacer"></div>
         </header>
 
+        <!-- Instrucțiuni DEASUPRA containerului -->
+        <div class="crop-instructions">
+          <p>Trage colțurile albastre pentru a ajusta decuparea</p>
+        </div>
+
         <!-- Container pentru imagine și puncte de decupare -->
         <div class="crop-container">
-          <!-- Instrucțiuni -->
-          <div class="crop-instructions">
-            <p>↔ Setază colțurile documentului pentru a îmbunătăți decuparea</p>
-          </div>
-
           <canvas id="edit-canvas"></canvas>
-
-          <!-- Punctele de decupare -->
           <div class="crop-overlay">
             <div class="crop-corner" data-corner="tl"></div>
             <div class="crop-corner" data-corner="tr"></div>
@@ -212,14 +226,18 @@
         </div>
       </section>
 
-      <!-- Actualizează secțiunea scanned-section din screen-home -->
-      <section id="scanned-section" class="scanned-section hidden">
-        <div class="scanned-header">
-          <h2>Pagini scanate (<span id="pages-count">0</span>)</h2>
+      <!-- ==================== ECRAN CONFIRMARE (NOU) ==================== -->
+      <section id="screen-confirm" class="screen">
+        <header class="confirm-header">
+          <h2>Pagină salvată!</h2>
+        </header>
+
+        <div class="confirm-preview">
+          <img id="confirm-image" src="" alt="Pagina scanată" />
         </div>
-        <div id="pages-list" class="pages-list"></div>
-        <div class="scanned-actions">
-          <button id="btn-preview-pdf" class="btn-preview-pdf">
+
+        <div class="confirm-actions">
+          <button id="btn-add-another" class="btn-secondary">
             <svg
               width="18"
               height="18"
@@ -228,12 +246,11 @@
               stroke="currentColor"
               stroke-width="2"
             >
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
+              <path d="M12 5v14M5 12h14" />
             </svg>
-            Previzualizare
+            Adaugă altă pagină
           </button>
-          <button id="btn-download" class="btn-download">
+          <button id="btn-finish-scanning" class="btn-primary">
             <svg
               width="18"
               height="18"
@@ -242,26 +259,14 @@
               stroke="currentColor"
               stroke-width="2"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+              <path d="M20 6L9 17l-5-5" />
             </svg>
-            Descarcă PDF
+            Gata, finalizează
           </button>
         </div>
       </section>
 
-      <!-- Modal nume document (adaugă înainte de </div> #app) -->
-      <div id="modal-filename" class="modal-overlay hidden">
-        <div class="modal">
-          <h3>Numele documentului</h3>
-          <input type="text" id="input-filename" placeholder="documente-scanate" value="" />
-          <div class="modal-actions">
-            <button id="btn-modal-cancel" class="btn-cancel">Anulează</button>
-            <button id="btn-modal-confirm" class="btn-confirm-modal">Descarcă</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Ecran preview PDF (adaugă după screen-edit) -->
+      <!-- ==================== ECRAN PREVIEW PDF ==================== -->
       <section id="screen-preview-pdf" class="screen">
         <header class="preview-pdf-header">
           <button id="btn-back-from-preview" class="btn-icon-round" aria-label="Înapoi">
@@ -269,13 +274,11 @@
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </button>
-          <h2>Previzualizare PDF</h2>
+          <h2>Previzualizare</h2>
           <div class="spacer"></div>
         </header>
 
-        <div id="preview-pdf-container" class="preview-pdf-container">
-          <!-- Paginile generate din JS -->
-        </div>
+        <div id="preview-pdf-container" class="preview-pdf-container"></div>
 
         <div class="preview-pdf-actions">
           <button id="btn-download-from-preview" class="btn-download">
@@ -289,10 +292,62 @@
             >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
             </svg>
-            Descarcă PDF
+            Descarcă
           </button>
         </div>
       </section>
+
+      <!-- ==================== MODAL DESCĂRCARE ==================== -->
+      <div id="modal-download" class="modal-overlay hidden">
+        <div class="modal">
+          <h3>Descarcă documentele</h3>
+
+          <div class="download-format">
+            <label class="format-option">
+              <input type="radio" name="format" value="pdf" checked />
+              <span class="format-label">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                PDF (un singur fișier)
+              </span>
+            </label>
+            <label class="format-option">
+              <input type="radio" name="format" value="images" />
+              <span class="format-label">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                Imagini separate (JPG)
+              </span>
+            </label>
+          </div>
+
+          <input type="text" id="input-filename" placeholder="Numele fișierului" value="" />
+
+          <div class="modal-actions">
+            <button id="btn-modal-cancel" class="btn-cancel">Anulează</button>
+            <button id="btn-modal-confirm" class="btn-confirm-modal">Descarcă</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
