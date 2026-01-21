@@ -183,23 +183,6 @@ body {
   justify-content: center;
 }
 
-.btn-download {
-  width: 100%;
-  padding: 16px;
-  background: #007aff;
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-download:active {
-  background: #0056cc;
-}
-
 /* ==================== ECRAN CAMERĂ ==================== */
 #screen-camera {
   background: #000;
@@ -481,7 +464,7 @@ body {
 .crop-container {
   flex: 1;
   position: relative;
-  margin: 0 16px;
+  margin: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -494,6 +477,25 @@ body {
   border-radius: 8px;
 }
 
+/* Instrucțiuni decupare */
+.crop-instructions {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 5;
+}
+
+.crop-instructions p {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
 /* Overlay decupare */
 .crop-overlay {
   position: absolute;
@@ -501,23 +503,52 @@ body {
   pointer-events: none;
 }
 
+/* Colțuri - design tip inel pentru a vedea ce e dedesubt */
 .crop-corner {
   position: absolute;
-  width: 32px;
-  height: 32px;
-  background: #007aff;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
   pointer-events: auto;
   cursor: grab;
   touch-action: none;
   z-index: 10;
 }
 
+/* Cercul exterior */
+.crop-corner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 4px solid #007aff;
+  border-radius: 50%;
+  background: rgba(0, 122, 255, 0.15);
+}
+
+/* Punctul central mic */
+.crop-corner::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #007aff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .crop-corner:active {
   cursor: grabbing;
-  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.crop-corner:active::before {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.2);
+}
+
+.crop-corner:active::after {
+  background: #fff;
 }
 
 .crop-corner[data-corner='tl'] {
@@ -549,14 +580,15 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 #crop-polygon {
-  fill: rgba(0, 122, 255, 0.1);
+  fill: rgba(0, 122, 255, 0.08);
   stroke: #007aff;
   stroke-width: 2;
+  stroke-dasharray: 8 4;
 }
-
 /* Filtre */
 .filters-section {
   padding: 16px;
@@ -657,4 +689,178 @@ body {
 
 .btn-primary:active {
   background: #0056cc;
+}
+/* Acțiuni după scanare */
+.scanned-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn-preview-pdf,
+.btn-download {
+  flex: 1;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-preview-pdf {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.btn-preview-pdf:active {
+  background: #333;
+}
+
+.btn-download {
+  background: #007aff;
+  color: #fff;
+}
+
+.btn-download:active {
+  background: #0056cc;
+}
+
+/* ==================== MODAL NUME DOCUMENT ==================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal {
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.modal h3 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.modal input {
+  width: 100%;
+  padding: 14px 16px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.modal input:focus {
+  outline: none;
+  border-color: #007aff;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-actions .btn-cancel {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.modal-actions .btn-confirm-modal {
+  background: #007aff;
+  color: #fff;
+}
+
+/* ==================== ECRAN PREVIEW PDF ==================== */
+
+#screen-preview-pdf {
+  background: #0a0a0a;
+}
+
+.preview-pdf-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+  border-bottom: 1px solid #222;
+}
+
+.preview-pdf-header h2 {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.preview-pdf-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.preview-pdf-page {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+}
+
+.preview-pdf-page img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+
+.preview-pdf-page-number {
+  position: absolute;
+  bottom: -30px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+}
+
+.preview-pdf-actions {
+  padding: 16px;
+  padding-bottom: 32px;
+  border-top: 1px solid #222;
+}
+
+.preview-pdf-actions .btn-download {
+  width: 100%;
 }

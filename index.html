@@ -134,7 +134,7 @@
 
         <!-- Tips -->
         <div id="camera-tips" class="camera-tips">
-          <p class="tip active" data-tip="1">📱 Ține telefonul paralel cu documentul</p>
+          <p class="tip active" data-tip="1">📱 Ține telefonul deasupra documentului</p>
           <p class="tip" data-tip="2">🔲 Încadrează documentul în chenar</p>
           <p class="tip" data-tip="3">💡 Asigură-te că ai lumină suficientă</p>
         </div>
@@ -149,6 +149,7 @@
       </section>
 
       <!-- ==================== ECRAN EDITARE ==================== -->
+      <!-- În screen-edit, adaugă instrucțiunile după edit-header -->
       <section id="screen-edit" class="screen">
         <header class="edit-header">
           <button id="btn-back-camera" class="btn-icon-round" aria-label="Înapoi la cameră">
@@ -162,7 +163,13 @@
 
         <!-- Container pentru imagine și puncte de decupare -->
         <div class="crop-container">
+          <!-- Instrucțiuni -->
+          <div class="crop-instructions">
+            <p>↔ Setază colțurile documentului pentru a îmbunătăți decuparea</p>
+          </div>
+
           <canvas id="edit-canvas"></canvas>
+
           <!-- Punctele de decupare -->
           <div class="crop-overlay">
             <div class="crop-corner" data-corner="tl"></div>
@@ -202,6 +209,88 @@
         <div class="edit-actions">
           <button id="btn-retake" class="btn-secondary">Refă poza</button>
           <button id="btn-confirm" class="btn-primary">Confirmă</button>
+        </div>
+      </section>
+
+      <!-- Actualizează secțiunea scanned-section din screen-home -->
+      <section id="scanned-section" class="scanned-section hidden">
+        <div class="scanned-header">
+          <h2>Pagini scanate (<span id="pages-count">0</span>)</h2>
+        </div>
+        <div id="pages-list" class="pages-list"></div>
+        <div class="scanned-actions">
+          <button id="btn-preview-pdf" class="btn-preview-pdf">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Previzualizare
+          </button>
+          <button id="btn-download" class="btn-download">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            Descarcă PDF
+          </button>
+        </div>
+      </section>
+
+      <!-- Modal nume document (adaugă înainte de </div> #app) -->
+      <div id="modal-filename" class="modal-overlay hidden">
+        <div class="modal">
+          <h3>Numele documentului</h3>
+          <input type="text" id="input-filename" placeholder="documente-scanate" value="" />
+          <div class="modal-actions">
+            <button id="btn-modal-cancel" class="btn-cancel">Anulează</button>
+            <button id="btn-modal-confirm" class="btn-confirm-modal">Descarcă</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ecran preview PDF (adaugă după screen-edit) -->
+      <section id="screen-preview-pdf" class="screen">
+        <header class="preview-pdf-header">
+          <button id="btn-back-from-preview" class="btn-icon-round" aria-label="Înapoi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h2>Previzualizare PDF</h2>
+          <div class="spacer"></div>
+        </header>
+
+        <div id="preview-pdf-container" class="preview-pdf-container">
+          <!-- Paginile generate din JS -->
+        </div>
+
+        <div class="preview-pdf-actions">
+          <button id="btn-download-from-preview" class="btn-download">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            Descarcă PDF
+          </button>
         </div>
       </section>
     </div>

@@ -10,7 +10,7 @@ const DOC_TYPES = {
 };
 
 const TIPS = [
-  '📱 Ține telefonul paralel cu documentul',
+  '📱 Ține telefonul deasupra documentului',
   '🔲 Încadrează documentul în chenar',
   '💡 Asigură-te că ai lumină suficientă',
   '✋ Ține telefonul nemișcat la captură',
@@ -26,15 +26,16 @@ class ScannerApp {
     this.tipInterval = null;
     this.currentTipIndex = 0;
 
-    // Crop corners positions (procente relative la imagine)
     this.cropCorners = {
-      tl: { x: 5, y: 5 },
-      tr: { x: 95, y: 5 },
-      bl: { x: 5, y: 95 },
-      br: { x: 95, y: 95 },
+      tl: { x: 2, y: 2 },
+      tr: { x: 98, y: 2 },
+      bl: { x: 2, y: 98 },
+      br: { x: 98, y: 98 },
     };
 
     this.activeDrag = null;
+    this.canvasRect = null;
+    this.containerRect = null;
   }
 
   init() {
@@ -49,8 +50,9 @@ class ScannerApp {
       btn.onclick = () => this.selectTypeAndOpenCamera(btn.dataset.type);
     });
 
-    // Home - descarcă PDF
-    document.getElementById('btn-download').onclick = () => this.downloadPDF();
+    // Home - previzualizare și descarcă
+    document.getElementById('btn-preview-pdf').onclick = () => this.showPreviewPDF();
+    document.getElementById('btn-download').onclick = () => this.showFilenameModal();
 
     // Cameră - înapoi
     document.getElementById('btn-back-home').onclick = () => this.goHome();
@@ -79,6 +81,14 @@ class ScannerApp {
     document.getElementById('btn-retake').onclick = () => this.showScreen('camera');
     document.getElementById('btn-confirm').onclick = () => this.confirmPage();
 
+    // Modal filename
+    document.getElementById('btn-modal-cancel').onclick = () => this.hideFilenameModal();
+    document.getElementById('btn-modal-confirm').onclick = () => this.downloadWithFilename();
+
+    // Preview PDF
+    document.getElementById('btn-back-from-preview').onclick = () => this.showScreen('home');
+    document.getElementById('btn-download-from-preview').onclick = () => this.showFilenameModal();
+
     // Crop corners - drag events
     this.initCropDrag();
 
@@ -86,6 +96,13 @@ class ScannerApp {
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.type-selector')) {
         this.closeTypeDropdown();
+      }
+    });
+
+    // Recalculează pozițiile când se redimensionează
+    window.addEventListener('resize', () => {
+      if (document.getElementById('screen-edit').classList.contains('active')) {
+        this.updateCropUI();
       }
     });
   }
@@ -99,6 +116,14 @@ class ScannerApp {
       this.startTips();
     } else {
       this.stopTips();
+    }
+
+    if (name === 'edit') {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          this.updateCropUI();
+        });
+      });
     }
   }
 
@@ -130,11 +155,12 @@ class ScannerApp {
       });
       document.getElementById('camera-preview').srcObject = this.stream;
 
-      // Verifică dacă lanterna e disponibilă
       const track = this.stream.getVideoTracks()[0];
       const capabilities = track.getCapabilities();
       if (!capabilities.torch) {
         document.getElementById('btn-flash').style.display = 'none';
+      } else {
+        document.getElementById('btn-flash').style.display = '';
       }
     } catch (err) {
       alert('Nu am putut accesa camera: ' + err.message);
@@ -177,8 +203,6 @@ class ScannerApp {
 
   updateTypeSelector() {
     document.getElementById('current-type-label').textContent = DOC_TYPES[this.currentType].label;
-
-    // Marchează opțiunea selectată
     document.querySelectorAll('.type-option').forEach((opt) => {
       opt.classList.toggle('selected', opt.dataset.type === this.currentType);
     });
@@ -240,29 +264,23 @@ class ScannerApp {
     const ghidaj = document.getElementById('ghidaj');
     const canvas = document.getElementById('edit-canvas');
 
-    // Dimensiunile video-ului real vs afișat
     const videoRect = video.getBoundingClientRect();
     const ghidajRect = ghidaj.getBoundingClientRect();
 
-    // Scala între video afișat și video real
     const scaleX = video.videoWidth / videoRect.width;
     const scaleY = video.videoHeight / videoRect.height;
 
-    // Poziția ghidajului relativ la video
     const cropX = (ghidajRect.left - videoRect.left) * scaleX;
     const cropY = (ghidajRect.top - videoRect.top) * scaleY;
     const cropWidth = ghidajRect.width * scaleX;
     const cropHeight = ghidajRect.height * scaleY;
 
-    // Canvas la dimensiunea cropului
     canvas.width = cropWidth;
     canvas.height = cropHeight;
 
-    // Desenează doar porțiunea din ghidaj
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
-    // Resetează crop corners și filtru
     this.resetCropCorners();
     this.currentFilter = 'original';
     this.updateFilterUI();
@@ -274,24 +292,20 @@ class ScannerApp {
   // ==================== CROP / DECUPARE ====================
   resetCropCorners() {
     this.cropCorners = {
-      tl: { x: 5, y: 5 },
-      tr: { x: 95, y: 5 },
-      bl: { x: 5, y: 95 },
-      br: { x: 95, y: 95 },
+      tl: { x: 2, y: 2 },
+      tr: { x: 98, y: 2 },
+      bl: { x: 2, y: 98 },
+      br: { x: 98, y: 98 },
     };
-    this.updateCropUI();
   }
 
   initCropDrag() {
     const corners = document.querySelectorAll('.crop-corner');
 
     corners.forEach((corner) => {
-      // Touch events
       corner.addEventListener('touchstart', (e) => this.startDrag(e, corner.dataset.corner), {
         passive: false,
       });
-
-      // Mouse events (pentru testare pe desktop)
       corner.addEventListener('mousedown', (e) => this.startDrag(e, corner.dataset.corner));
     });
 
@@ -304,26 +318,23 @@ class ScannerApp {
   startDrag(e, cornerKey) {
     e.preventDefault();
     this.activeDrag = cornerKey;
+
+    const canvas = document.getElementById('edit-canvas');
+    const container = document.querySelector('.crop-container');
+    this.canvasRect = canvas.getBoundingClientRect();
+    this.containerRect = container.getBoundingClientRect();
   }
 
   onDrag(e) {
     if (!this.activeDrag) return;
     e.preventDefault();
 
-    const container = document.querySelector('.crop-container');
-    const canvas = document.getElementById('edit-canvas');
-    const canvasRect = canvas.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-
-    // Poziția touch/mouse
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-    // Calculează poziția relativă la canvas (în procente)
-    let x = ((clientX - canvasRect.left) / canvasRect.width) * 100;
-    let y = ((clientY - canvasRect.top) / canvasRect.height) * 100;
+    let x = ((clientX - this.canvasRect.left) / this.canvasRect.width) * 100;
+    let y = ((clientY - this.canvasRect.top) / this.canvasRect.height) * 100;
 
-    // Limitează între 0 și 100
     x = Math.max(0, Math.min(100, x));
     y = Math.max(0, Math.min(100, y));
 
@@ -337,19 +348,21 @@ class ScannerApp {
 
   updateCropUI() {
     const canvas = document.getElementById('edit-canvas');
-    const canvasRect = canvas.getBoundingClientRect();
     const container = document.querySelector('.crop-container');
+
+    if (!canvas || !container) return;
+
+    const canvasRect = canvas.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
 
-    // Offset canvas în container
     const offsetX = canvasRect.left - containerRect.left;
     const offsetY = canvasRect.top - containerRect.top;
 
-    // Actualizează pozițiile colțurilor
     Object.keys(this.cropCorners).forEach((key) => {
       const corner = document.querySelector(`.crop-corner[data-corner="${key}"]`);
-      const pos = this.cropCorners[key];
+      if (!corner) return;
 
+      const pos = this.cropCorners[key];
       const left = offsetX + (pos.x / 100) * canvasRect.width;
       const top = offsetY + (pos.y / 100) * canvasRect.height;
 
@@ -358,8 +371,9 @@ class ScannerApp {
       corner.style.transform = 'translate(-50%, -50%)';
     });
 
-    // Actualizează poligonul SVG
     const polygon = document.getElementById('crop-polygon');
+    if (!polygon) return;
+
     const points = ['tl', 'tr', 'br', 'bl']
       .map((key) => {
         const pos = this.cropCorners[key];
@@ -401,7 +415,6 @@ class ScannerApp {
   }
 
   updateFilterPreviews() {
-    // Setează preview-urile filtrelor cu imaginea actuală
     const canvas = document.getElementById('edit-canvas');
     const dataUrl = canvas.toDataURL('image/jpeg', 0.3);
 
@@ -415,13 +428,9 @@ class ScannerApp {
   // ==================== CONFIRMARE PAGINĂ ====================
   confirmPage() {
     const sourceCanvas = document.getElementById('edit-canvas');
-    const ctx = sourceCanvas.getContext('2d');
-
-    // Creează canvas nou pentru imaginea finală decupată
     const finalCanvas = document.createElement('canvas');
     const finalCtx = finalCanvas.getContext('2d');
 
-    // Calculează bounding box pentru crop
     const corners = this.cropCorners;
     const minX = (Math.min(corners.tl.x, corners.bl.x) / 100) * sourceCanvas.width;
     const maxX = (Math.max(corners.tr.x, corners.br.x) / 100) * sourceCanvas.width;
@@ -434,10 +443,7 @@ class ScannerApp {
     finalCanvas.width = cropWidth;
     finalCanvas.height = cropHeight;
 
-    // Aplică filtrul
     finalCtx.filter = this.getFilterCSS(this.currentFilter);
-
-    // Desenează porțiunea decupată
     finalCtx.drawImage(
       sourceCanvas,
       minX,
@@ -450,7 +456,6 @@ class ScannerApp {
       cropHeight
     );
 
-    // Salvează pagina
     this.pages.push({
       data: finalCanvas.toDataURL('image/jpeg', 0.9),
       type: this.currentType,
@@ -487,7 +492,6 @@ class ScannerApp {
       )
       .join('');
 
-    // Bind delete buttons
     list.querySelectorAll('.page-thumb-delete').forEach((btn) => {
       btn.onclick = (e) => {
         e.stopPropagation();
@@ -495,7 +499,6 @@ class ScannerApp {
       };
     });
 
-    // Bind drag & drop pentru reordonare
     this.initPagesDragDrop();
   }
 
@@ -535,7 +538,6 @@ class ScannerApp {
         const dropIndex = parseInt(thumb.dataset.index);
 
         if (draggedIndex !== null && draggedIndex !== dropIndex) {
-          // Reordonează array-ul
           const [movedPage] = this.pages.splice(draggedIndex, 1);
           this.pages.splice(dropIndex, 0, movedPage);
           this.updatePagesUI();
@@ -543,14 +545,12 @@ class ScannerApp {
       });
     });
 
-    // Touch drag pentru mobil
     this.initTouchDragDrop();
   }
 
   initTouchDragDrop() {
     const list = document.getElementById('pages-list');
     let touchedItem = null;
-    let touchStartX = 0;
     let initialIndex = null;
 
     list.addEventListener('touchstart', (e) => {
@@ -559,7 +559,6 @@ class ScannerApp {
 
       touchedItem = thumb;
       initialIndex = parseInt(thumb.dataset.index);
-      touchStartX = e.touches[0].clientX;
 
       setTimeout(() => {
         if (touchedItem) {
@@ -593,8 +592,67 @@ class ScannerApp {
     });
   }
 
+  // ==================== PREVIEW PDF ====================
+  showPreviewPDF() {
+    if (this.pages.length === 0) {
+      alert('Adaugă cel puțin o pagină');
+      return;
+    }
+
+    const container = document.getElementById('preview-pdf-container');
+    container.innerHTML = this.pages
+      .map(
+        (page, i) => `
+      <div class="preview-pdf-page">
+        <img src="${page.data}" alt="Pagina ${i + 1}">
+        <span class="preview-pdf-page-number">Pagina ${i + 1} din ${this.pages.length}</span>
+      </div>
+    `
+      )
+      .join('');
+
+    this.showScreen('preview-pdf');
+  }
+
+  // ==================== MODAL FILENAME ====================
+  showFilenameModal() {
+    if (this.pages.length === 0) {
+      alert('Adaugă cel puțin o pagină');
+      return;
+    }
+
+    const modal = document.getElementById('modal-filename');
+    const input = document.getElementById('input-filename');
+
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    input.value = `scanare-${dateStr}`;
+
+    modal.classList.remove('hidden');
+    input.focus();
+    input.select();
+  }
+
+  hideFilenameModal() {
+    document.getElementById('modal-filename').classList.add('hidden');
+  }
+
+  downloadWithFilename() {
+    const input = document.getElementById('input-filename');
+    let filename = input.value.trim();
+
+    if (!filename) {
+      filename = 'documente-scanate';
+    }
+
+    filename = filename.replace(/[^a-zA-Z0-9-_\s]/g, '').replace(/\s+/g, '-');
+
+    this.hideFilenameModal();
+    this.downloadPDF(filename);
+  }
+
   // ==================== DESCARCĂ PDF ====================
-  async downloadPDF() {
+  async downloadPDF(filename = 'documente-scanate') {
     if (this.pages.length === 0) {
       alert('Adaugă cel puțin o pagină');
       return;
@@ -629,7 +687,7 @@ class ScannerApp {
       pdf.addImage(page.data, 'JPEG', x, y, width, height);
     }
 
-    pdf.save('documente-scanate.pdf');
+    pdf.save(`${filename}.pdf`);
   }
 }
 
