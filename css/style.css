@@ -871,14 +871,19 @@ body {
 .preview-pdf-actions .btn-download {
   width: 100%;
 }
-/* ==================== ECRAN CONFIRMARE ==================== */
+/* ==================== ECRAN CONFIRMARE (FIXED) ==================== */
 #screen-confirm {
   background: #0a0a0a;
   display: none;
   flex-direction: column;
-  height: 100vh; /* Forțează ecranul să fie fix cât fereastra */
-  overflow: hidden;
-  min-height: 0;
+  /* Forțează ecranul să nu depășească NICIODATĂ înălțimea vizibilă */
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden; /* Nu lăsa pagina să facă scroll general */
 }
 
 #screen-confirm.active {
@@ -886,67 +891,59 @@ body {
 }
 
 .confirm-header {
-  padding: 24px 16px;
+  padding: 15px; /* Redus de la 24px pentru a economisi spațiu */
   text-align: center;
+  flex-shrink: 0; /* Îi interzice header-ului să fie strivit sau împins */
 }
 
 .confirm-header h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #4cd964;
 }
 
 .confirm-preview {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1; /* Ocupă tot spațiul central disponibil */
+  min-height: 0; /* ESENȚIAL: Permite zonei să se micșoreze dacă poza e uriașă */
+  overflow-y: auto; /* Activează scroll-ul DOAR pentru previzualizarea pozei */
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* MODIFICARE: Scoatem justify-content: center; */
-  padding: 16px;
+  padding: 10px;
   -webkit-overflow-scrolling: touch;
 }
 
 .confirm-preview img {
   max-width: 100%;
-  /* MODIFICARE: Scoatem sau setăm pe initial max-height-ul */
   height: auto;
-  max-height: none;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  /* Adăugăm o marjă jos ca să nu stea lipită de butoane la final de scroll */
-  margin-bottom: 20px;
+  margin-bottom: 20px; /* Spațiu la finalul scroll-ului */
 }
 
 .confirm-actions {
+  flex-shrink: 0; /* ESENȚIAL: Interzice butoanelor să dispară sub ecran */
   padding: 12px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* Siguranță pentru iPhone */
+  padding-bottom: calc(15px + env(safe-area-inset-bottom));
   background: #141414;
   border-top: 1px solid #2a2a2a;
   display: flex;
-  flex-direction: row; /* Aliniere pe orizontală */
-  gap: 10px; /* Spațiu între ele */
-  flex-shrink: 0; /* Nu lăsăm zona să fie strivită */
+  flex-direction: row;
+  gap: 10px;
 }
 
 .confirm-actions .btn-secondary,
 .confirm-actions .btn-primary {
-  flex: 1; /* Fiecare buton ocupă jumătate din lățime */
-  padding: 12px 8px; /* Padding mai mic pe lateral */
-  font-size: 14px; /* Text puțin mai mic să încapă pe un rând */
-  height: 50px; /* Înălțime fixă pentru consistență */
+  flex: 1;
+  padding: 0 8px; /* Folosim height pentru control vertical */
+  font-size: 13px; /* Puțin mai mic pentru a fi siguri că încape textul */
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  white-space: nowrap; /* Împiedică textul să sară pe rândul doi */
-}
-
-/* Ajustăm iconițele să fie puțin mai mici dacă e nevoie */
-.confirm-actions svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
+  white-space: nowrap;
+  border-radius: 10px;
 }
 
 /* ==================== MODAL DESCĂRCARE ==================== */
